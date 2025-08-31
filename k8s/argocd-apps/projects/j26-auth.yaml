@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: j26-auth
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  sourceRepos:
+    - 'https://github.com/Scouterna/j26-auth.git'
+  destinations:
+    - namespace: j26-auth
+      server: https://kubernetes.default.svc
+  # Deny all cluster-scoped resources from being created, except for Namespace
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
