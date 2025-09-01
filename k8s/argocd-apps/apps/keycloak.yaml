@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keycloak-test
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: bitnami/keycloak
+    repoURL: https://charts.bitnami.com/bitnami
+    targetRevision: 25.2.0
+    helm:
+      releaseName: keycloak-test
+      valuesObject:
+        ingress:
+          enabled: true
+          hostname: keycloak-test.dev.j26.se
+          ingressClassName: nginx
+          annotations:
+            nginx.ingress.kubernetes.io/ssl-redirect: "true"
+            nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          tls: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keycloak-test
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
