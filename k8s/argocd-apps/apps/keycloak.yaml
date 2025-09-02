@@ -12,6 +12,10 @@ spec:
     helm:
       releaseName: keycloak-test
       valuesObject:
+        auth:
+          adminUser: admin
+          existingSecret: keycloak-admin-secret
+          passwordSecretKey: admin-password
         ingress:
           enabled: true
           hostname: keycloak-test.dev.j26.se
