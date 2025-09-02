@@ -24,6 +24,7 @@ spec:
             nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
             cert-manager.io/cluster-issuer: "letsencrypt"
           tls: true
+        proxyHeaders: forwarded
   destination:
     server: https://kubernetes.default.svc
     namespace: keycloak-test
