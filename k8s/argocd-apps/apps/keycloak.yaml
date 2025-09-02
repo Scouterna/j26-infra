@@ -14,8 +14,7 @@ spec:
       valuesObject:
         auth:
           adminUser: admin
-          existingSecret: keycloak-admin-secret
-          passwordSecretKey: admin-password
+          adminPassword: changeme
         ingress:
           enabled: true
           hostname: keycloak-test.dev.j26.se
