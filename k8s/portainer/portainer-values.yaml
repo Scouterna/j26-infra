@@ -1,0 +1,23 @@
+# If enterpriseEdition is enabled, then use the values below _instead_ of those in .image
+enterpriseEdition: 
+  enabled: true
+
+persistence:
+  enabled: true
+  size: "1Gi"
+
+ingress:
+  enabled: true
+  ingressClassName: "nginx"
+  annotations:
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "http"
+    cert-manager.io/cluster-issuer: letsencrypt
+  hosts:
+    - host: portainer.app.j26.se
+      paths:
+      - path: "/"
+  tls:
+    - hosts:
+        - portainer.app.j26.se
+      secretName: portainer-dev-j26-se-tls-secret
