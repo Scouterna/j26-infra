@@ -15,7 +15,7 @@ spec:
     server: https://kubernetes.default.svc
     namespace: j26-infratest
   syncPolicy:
-    # automated:
-    #   prune: true
+    automated:
+      prune: true
     syncOptions:
       - CreateNamespace=true
