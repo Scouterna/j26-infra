@@ -1,0 +1,122 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pod-reader
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-reader-binding
+subjects:
+  - kind: ServiceAccount
+    name: default
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: j26-infratest-env-vars
+data:
+  PLACEHOLDER: "This is a placeholder for environment variables"
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: j26-infratest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: j26-infratest
+  template:
+    metadata:
+      labels:
+        app: j26-infratest
+    spec:
+      containers:
+        - name: j26-infratest
+          image: ghcr.io/scouterna/j26-infratest:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          envFrom:
+            # - secretRef:
+            #     name: j26-infratest-secrets
+            - configMapRef:
+                name: j26-infratest-env-vars
+          env:
+            - name: DEBUG
+              value: "false"
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "300m"
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          securityContext: {}
+      #     volumeMounts:
+      #       - name: j26-infratest-volume
+      #         mountPath: /data
+      # volumes:
+      #   - name: j26-infratest-volume
+      #     persistentVolumeClaim:
+      #       claimName: j26-infratest-pvc
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: j26-infratest
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8000
+      targetPort: http
+  selector:
+    app: j26-infratest
+---
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: j26-infratest-public
+  labels:
+    app: j26-infratest
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/backend-protocol: "http"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - infratest.dev.j26.se
+      secretName: j26-infratest-tls-secret
+  rules:
+    - host: infratest.dev.j26.se
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: j26-infratest
+                port:
+                  number: 8000
