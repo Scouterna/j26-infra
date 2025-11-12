@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: j26-app
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: j26-app
+  source:
+    repoURL: https://github.com/Scouterna/j26-infra.git
+    targetRevision: HEAD
+    path: k8s/app-manifest/j26-app
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: j26-app
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
