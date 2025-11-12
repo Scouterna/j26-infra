@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: j26-auth-config
+data:
+  PUBLIC_URL: https://app.dev.j26.se/auth
+  OIDC_SERVER: https://dev.id.scouterna.se/realms/scoutnet
+  OIDC_CLIENT_ID: j26-auth-test
+  # OIDC_CLIENT_SECRET: abc123

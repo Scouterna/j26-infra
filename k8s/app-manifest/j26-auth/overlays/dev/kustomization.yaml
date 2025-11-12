@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ../../base
+
+patches:
+  - path: patch-deployment.yaml
+    target:
+      kind: Deployment
+      name: j26-auth
+  - path: patch-configmap.yaml
+    target:
+      kind: ConfigMap
+      name: j26-auth-config
+
+images:
+  - name: ghcr.io/scouterna/j26-auth
+    newTag: 95f9613
