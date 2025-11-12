@@ -101,20 +101,16 @@ metadata:
   labels:
     app: j26-infratest
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
     nginx.ingress.kubernetes.io/backend-protocol: "http"
 spec:
   ingressClassName: nginx
-  tls:
-    - hosts:
-        - infratest.dev.j26.se
-      secretName: j26-infratest-tls-secret
   rules:
-    - host: infratest.dev.j26.se
+    - host: app.j26.se
       http:
         paths:
-          - path: /
-            pathType: Prefix
+          - path: /infratest(/|$)(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: j26-infratest
