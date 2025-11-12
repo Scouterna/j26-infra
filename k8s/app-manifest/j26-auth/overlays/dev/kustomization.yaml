@@ -16,4 +16,4 @@ patches:
 
 images:
   - name: ghcr.io/scouterna/j26-auth
-    newTag: cd6502d
+    newTag: a23665d
