@@ -9,7 +9,7 @@ spec:
   sourceRepos:
     - 'https://github.com/Scouterna/j26-infra.git'
   destinations:
-    - namespace: apps
+    - namespace: '*'
       server: https://kubernetes.default.svc
   # Deny all cluster-scoped resources from being created, except for Namespace
   clusterResourceWhitelist:
