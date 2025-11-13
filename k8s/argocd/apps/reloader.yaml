@@ -6,7 +6,7 @@ metadata:
 spec:
   project: common
   source:
-    chart: stakater/reloader
+    chart: reloader
     repoURL: https://stakater.github.io/stakater-charts
     targetRevision: 2.2.5
     helm:
