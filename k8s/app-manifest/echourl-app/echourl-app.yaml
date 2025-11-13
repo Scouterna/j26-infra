@@ -42,7 +42,7 @@ spec:
     - host: app.dev.j26.se
       http:
         paths:
-            path: /echo(/|$)(.*)
+          - path: /echo(/|$)(.*)
             pathType: ImplementationSpecific
             backend:
               service:
