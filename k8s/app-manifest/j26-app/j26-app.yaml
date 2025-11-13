@@ -76,10 +76,10 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - app.j26.se
+        - app.dev.j26.se
       secretName: j26-app-tls-secret
   rules:
-    - host: app.j26.se
+    - host: app.dev.j26.se
       http:
         paths:
           - path: /
