@@ -6,7 +6,7 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
-  project: j26-auth
+  project: apps
   source:
     repoURL: https://github.com/Scouterna/j26-infra.git
     targetRevision: HEAD
