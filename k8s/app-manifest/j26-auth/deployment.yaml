@@ -4,6 +4,7 @@ metadata:
   name: j26-auth
   annotations:
     reloader.stakater.com/auto: "true"
+    reloader.stakater.com/rollout-strategy: "restart"
 spec:
   replicas: 1
   selector:
