@@ -1,9 +1,10 @@
-# The apps project contains all Jamboree26 apps that we deploy to the cluster.
+# The common project contains resources shared across multiple applications that
+# are not specific to Jamboree26.
 
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: apps
+  name: common
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io

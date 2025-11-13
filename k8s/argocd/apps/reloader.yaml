@@ -4,7 +4,7 @@ metadata:
   name: reloader
   namespace: argocd
 spec:
-  project: apps
+  project: common
   source:
     chart: stakater/reloader
     repoURL: https://stakater.github.io/stakater-charts
