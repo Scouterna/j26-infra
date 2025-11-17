@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: j26-infra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: rollout-restart-deployments
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch", "patch"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rollout-restart
+  namespace: j26-infra
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rollout-restart-token
+  namespace: j26-infra
+  annotations:
+    kubernetes.io/service-account.name: rollout-restart
+type: kubernetes.io/service-account-token
+
