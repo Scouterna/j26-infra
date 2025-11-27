@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: j26-booking-config
+data:
+  # PUBLIC_URL: https://app.dev.j26.se/auth
+  # ALLOWED_REDIRECT_DOMAINS: app.dev.j26.se
+  # OIDC_SERVER: https://dev.id.scouterna.se/realms/jamboree26
+  # OIDC_CLIENT_ID: j26-auth
+  # OIDC_CLIENT_SECRET: abc123

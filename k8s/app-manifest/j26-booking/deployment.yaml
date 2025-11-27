@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: j26-booking
+  annotations:
+    reloader.stakater.com/auto: "true"
+    reloader.stakater.com/rollout-strategy: "restart"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: j26-booking
+  template:
+    metadata:
+      labels:
+        app: j26-booking
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/scouterna/j26-booking:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: j26-booking-config
+            - secretRef:
+                name: j26-booking-secrets
+          volumeMounts:
+            - name: secrets-store
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: j26-booking-kv-csi
