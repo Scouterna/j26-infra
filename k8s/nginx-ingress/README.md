@@ -9,9 +9,10 @@ Apps can register with the Nginx ingress controller using an [ingress manifest](
 The Nginx ingress controller is installed using [Helm](hhttps://kubernetes.github.io/ingress-nginx/deploy/).
 
 ```bash
-helm template ingress-nginx ingress-nginx \
+helm upgrade --install ingress-nginx ingress-nginx \
   --repo https://kubernetes.github.io/ingress-nginx \
-  --namespace ingress-nginx
+  --namespace ingress-nginx \
+  --create-namespace
 ```
 
 ## Certificate manager
