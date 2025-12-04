@@ -11,6 +11,9 @@ The Nginx ingress controller is installed using [Helm](hhttps://kubernetes.githu
 ```bash
 helm upgrade --install ingress-nginx ingress-nginx \
   --repo https://kubernetes.github.io/ingress-nginx \
+  --version 4.14.0 \
+  --set-string controller.config.enable-access-log-for-default-backend="true" \
+  --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz \
   --namespace ingress-nginx \
   --create-namespace
 ```
@@ -26,6 +29,7 @@ We also use [Helm](https://cert-manager.io/docs/installation/helm/) here:
 ```bash
 helm install cert-manager cert-manager \
   --repo https://charts.jetstack.io \
+  --version v1.19.1 \
   --set crds.enabled=true \
   --namespace ingress-nginx
 ```
