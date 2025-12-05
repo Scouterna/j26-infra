@@ -8,8 +8,8 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-passthrough: "true"
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
     cert-manager.io/cluster-issuer: "letsencrypt"
-    cert-manager.io/acme-challenge-type: "http01"
-    acme.cert-manager.io/http01-edit-in-place: "true"
+    # cert-manager.io/acme-challenge-type: "http01"
+    # acme.cert-manager.io/http01-edit-in-place: "true"
 spec:
   ingressClassName: nginx
   rules:
