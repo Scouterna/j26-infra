@@ -13,7 +13,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: argocd.dev.j26.se
+  - host: argocd.new.dev.j26.se
     http:
       paths:
       - path: /
@@ -25,5 +25,5 @@ spec:
               name: https
   tls:
   - hosts:
-    - argocd.dev.j26.se
+    - argocd.new.dev.j26.se
     secretName: argocd-server-tls
