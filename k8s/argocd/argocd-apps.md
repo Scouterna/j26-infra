@@ -3,7 +3,7 @@
 Create a project for each application/repository:
 ```bash
 # Do this for every project
-argocd proj create -f projects/j26-auth.yaml
+argocd proj create -f projects/apps.yaml
 ```
 
 Then deploy the app-of-apps:
@@ -12,7 +12,7 @@ argocd app create apps \
     --dest-namespace argocd \
     --dest-server https://kubernetes.default.svc \
     --repo https://github.com/scouterna/j26-infra.git \
-    --path k8s/argocd-apps/apps
+    --path k8s/argocd/apps
 
 argocd app sync apps
 ```
