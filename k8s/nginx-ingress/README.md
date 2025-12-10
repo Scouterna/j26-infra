@@ -31,7 +31,7 @@ helm install cert-manager cert-manager \
   --repo https://charts.jetstack.io \
   --version v1.19.1 \
   --set crds.enabled=true \
-  --namespace ingress-nginx
+  --namespace cert-manager
 ```
 
 To issue valid certificates automatically, we install a [Cluster Issuer](https://cert-manager.io/docs/concepts/issuer/) that use [Let's Encrypt](https://letsencrypt.org/).
@@ -42,7 +42,6 @@ apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
   name: letsencrypt
-  namespace: ingress-nginx
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
