@@ -1,0 +1,47 @@
+## Using default values from https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml
+##
+grafana:
+
+  # To make Grafana persistent (Using Statefulset)
+  #
+  # persistence:
+  #   enabled: true
+  #   type: sts
+  #   storageClassName: "local-storage"
+  #   accessModes:
+  #     - ReadWriteOnce
+  #   size: 20Gi
+  #   finalizers:
+  #     - kubernetes.io/pvc-protection
+
+  ingress:
+    ## If true, Grafana Ingress will be created
+    ##
+    enabled: true
+
+    ## IngressClassName for Grafana Ingress.
+    ## Should be provided if Ingress is enable.
+    ##
+    ingressClassName: nginx
+
+    ## Annotations for Grafana Ingress
+    ##
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt"
+
+    ## Hostnames.
+    ## Must be provided if Ingress is enable.
+    ##
+    hosts:
+      - grafana.j26.se
+
+    ## Path for grafana ingress
+    path: /
+
+    ## TLS configuration for grafana Ingress
+    ## Secret must be manually created in the namespace
+    ##
+    tls:
+    - secretName: grafana-j26-se-tls
+      hosts:
+      - grafana.j26.se
