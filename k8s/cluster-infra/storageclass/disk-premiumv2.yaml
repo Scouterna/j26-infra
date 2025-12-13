@@ -1,0 +1,13 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: disk-premiumv2
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+provisioner: disk.csi.azure.com
+parameters:
+  skuname: PremiumV2_LRS
+  cachingMode: None
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
