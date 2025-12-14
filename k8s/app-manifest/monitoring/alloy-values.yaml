@@ -75,13 +75,13 @@ alloy:
 
         stage.static_labels {
           values = {
-            cluster = "j26"
+            cluster = "j26",
           }
         }
 
         stage.labels {
           values = {
-            logger = "logger"
+            logger = "logger",
           }
         }
 
@@ -92,7 +92,7 @@ alloy:
           }
           stage.labels {
             values = {
-              status_code = "http_status"
+              status_code = "http_status",
             }
           }
         }
