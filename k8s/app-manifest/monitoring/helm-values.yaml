@@ -14,27 +14,27 @@ grafana:
 
   persistence:
     enabled: true
-    storageClassName: disk-premiumv2
-    size: 5Gi
+    storageClassName: disk-standardssd
+    size: 8Gi
 
 prometheus:
   prometheusSpec:
     storageSpec:
       volumeClaimTemplate:
         spec:
-          storageClassName: disk-premiumv2
+          storageClassName: disk-standardssd
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:
-              storage: 20Gi
+              storage: 32Gi
 
 alertmanager:
   alertmanagerSpec:
     storage:
       volumeClaimTemplate:
         spec:
-          storageClassName: disk-premiumv2
+          storageClassName: disk-standardssd
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:
-              storage: 2Gi
+              storage: 4Gi
