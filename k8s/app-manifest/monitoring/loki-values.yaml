@@ -6,7 +6,21 @@ loki:
     filesystem:
       chunks_directory: /var/loki/chunks
       rules_directory: /var/loki/rules
+  schemaConfig:
+    configs:
+      - from: "2025-01-01"
+        store: boltdb-shipper
+        object_store: filesystem
+        schema: v12
+        index:
+          prefix: loki_index_
+          period: 24h
+  storage_config:
+    filesystem:
+      chunks_directory: /var/loki/chunks
+      rules_directory: /var/loki/rules
   commonConfig:
+    path_prefix: /var/loki
     replication_factor: 1
   auth_enabled: false
 
