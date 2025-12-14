@@ -1,0 +1,18 @@
+deploymentMode: SingleBinary
+
+loki:
+  storage:
+    type: filesystem
+    filesystem:
+      chunks_directory: /var/loki/chunks
+      rules_directory: /var/loki/rules
+  commonConfig:
+    replication_factor: 1
+  auth_enabled: false
+
+singleBinary:
+  replicas: 1
+  persistence:
+    enabled: true
+    size: 32Gi
+    storageClass: disk-standardssd

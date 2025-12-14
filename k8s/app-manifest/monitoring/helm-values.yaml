@@ -22,6 +22,13 @@ grafana:
     enabled: true
     storageClassName: disk-standardssd
     size: 8Gi
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      access: proxy
+      url: http://loki:3100
+      jsonData:
+        maxLines: 1000
 
 prometheus:
   prometheusSpec:
