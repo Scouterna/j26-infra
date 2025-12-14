@@ -16,3 +16,12 @@ singleBinary:
     enabled: true
     size: 32Gi
     storageClass: disk-standardssd
+
+write:
+  replicas: 0
+
+read:
+  replicas: 0
+
+backend:
+  replicas: 0
