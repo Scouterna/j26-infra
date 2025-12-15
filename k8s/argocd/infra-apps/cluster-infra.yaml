@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://github.com/Scouterna/j26-infra.git
     targetRevision: main
-    path: k8s/cluster-infra/storageclass
+    path: k8s/infra-manifest/cluster-infra
 
   destination:
     server: https://kubernetes.default.svc
