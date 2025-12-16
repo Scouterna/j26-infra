@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: j26-infratest
+  namespace: j26-infratest
+  labels:
+    release: kps
+spec:
+  namespaceSelector:
+    matchNames:
+      - j26-infratest
+  selector:
+    matchLabels:
+      app: j26-infratest
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s

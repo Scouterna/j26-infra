@@ -85,6 +85,8 @@ kind: Service
 apiVersion: v1
 metadata:
   name: j26-infratest
+  labels:
+    app: j26-infratest
 spec:
   ports:
     - name: http
