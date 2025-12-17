@@ -30,7 +30,7 @@ spec:
               readOnly: true
           env:
             - name: DATABASE_URL
-              value: "postgresql://$(AZURE_POSTGRESQL_USERNAME):$(AZURE_POSTGRESQL_PASSWORD)@$(AZURE_POSTGRESQL_HOST):$(AZURE_POSTGRESQL_PORT)/$(AZURE_POSTGRESQL_DATABASE)?sslmode=require"
+              value: "postgresql://$(AZURE_POSTGRESQL_USERNAME):'$(AZURE_POSTGRESQL_PASSWORD)'@$(AZURE_POSTGRESQL_HOST):$(AZURE_POSTGRESQL_PORT)/$(AZURE_POSTGRESQL_DATABASE)?sslmode=require"
       volumes:
         - name: secrets-store
           csi:
