@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: j26-app
+spec:
+  selector:
+    app: j26-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
