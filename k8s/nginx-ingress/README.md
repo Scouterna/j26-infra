@@ -14,7 +14,6 @@ helm upgrade --install ingress-nginx ingress-nginx \
   --version 4.14.0 \
   --set-string controller.config.enable-access-log-for-default-backend="true" \
   --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-load-balancer-health-probe-request-path"=/healthz \
-  --set controller.enableSnippets=true \
   --namespace ingress-nginx \
   --create-namespace
 ```
