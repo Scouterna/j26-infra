@@ -11,10 +11,10 @@ metadata:
     # nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   ingressClassName: nginx
-  # tls:
-  #   - hosts:
-  #       - app.dev.j26.se
-  #     secretName: j26-app-tls-secret
+  tls:
+    - hosts:
+        - app.dev.j26.se
+      secretName: j26-app-tls-secret
   rules:
     - host: app.dev.j26.se
       http:
