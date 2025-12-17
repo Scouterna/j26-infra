@@ -14,9 +14,26 @@ spec:
     spec:
       containers:
         - name: app
-          image: ghcr.io/scouterna/j26-booking:latest
+          image: ghcr.io/scouterna/j26-booking:03e560e-app
           ports:
             - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: j26-booking-config
+            - secretRef:
+                name: j26-booking-secrets
+            - secretRef:
+                name: sc-postgresqla5566-secret
+          volumeMounts:
+            - name: secrets-store
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://$(AZURE_POSTGRESQL_USERNAME):$(AZURE_POSTGRESQL_PASSWORD)@$(AZURE_POSTGRESQL_HOST):$(AZURE_POSTGRESQL_PORT)/$(AZURE_POSTGRESQL_DATABASE)?sslmode=require"
+      initContainers:
+        - name: init-migrate
+          image: ghcr.io/scouterna/j26-booking:03e560e-migrate
           envFrom:
             - configMapRef:
                 name: j26-booking-config
