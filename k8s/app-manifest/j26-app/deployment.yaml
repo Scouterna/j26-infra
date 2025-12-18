@@ -13,7 +13,7 @@ spec:
         app: j26-app
     spec:
       containers:
-        - name: app
+        - name: j26-app
           image: ghcr.io/scouterna/j26-app:sha-7e0d447
           ports:
             - containerPort: 3000

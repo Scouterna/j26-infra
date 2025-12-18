@@ -13,7 +13,7 @@ spec:
         app: j26-booking
     spec:
       containers:
-        - name: app
+        - name: j26-booking-app
           image: ghcr.io/scouterna/j26-booking:1016ea5-app
           ports:
             - containerPort: 8000
@@ -32,7 +32,7 @@ spec:
             - name: DATABASE_URL
               value: "postgresql://$(AZURE_POSTGRESQL_USERNAME):$(AZURE_POSTGRESQL_PASSWORD)@$(AZURE_POSTGRESQL_HOST):$(AZURE_POSTGRESQL_PORT)/$(AZURE_POSTGRESQL_DATABASE)?sslmode=require"
       initContainers:
-        - name: init-migrate
+        - name: j26-booking-init-migrate
           image: ghcr.io/scouterna/j26-booking:1016ea5-migrate
           envFrom:
             - configMapRef:
