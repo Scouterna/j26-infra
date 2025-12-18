@@ -4,7 +4,7 @@ metadata:
   name: j26-auth-config
 data:
   PUBLIC_URL: https://app.dev.j26.se/auth
-  ALLOWED_REDIRECT_DOMAINS: app.dev.j26.se
+  ALLOWED_REDIRECT_DOMAINS: app.dev.j26.se,localhost:5678
   OIDC_SERVER: https://dev.id.scouterna.se/realms/jamboree26
   OIDC_CLIENT_ID: j26-auth
   # OIDC_CLIENT_SECRET: abc123
