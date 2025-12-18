@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: ghcr.io/scouterna/j26-app:latest
+          image: ghcr.io/scouterna/j26-app:c1675fe
           ports:
             - containerPort: 3000
           envFrom:
