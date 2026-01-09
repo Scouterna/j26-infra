@@ -19,9 +19,7 @@ spec:
           imageName: "ghcr.io/scouterna/j26-booking"
           commonUpdateSettings:
             updateStrategy: "newest-build"
-            allowTags: "regexp:^.*-app$"
         - alias: "migrate"
-          imageName: "ghcr.io/scouterna/j26-booking"
+          imageName: "ghcr.io/scouterna/j26-booking-migrate"
           commonUpdateSettings:
             updateStrategy: "newest-build"
-            allowTags: "regexp:^.*-migrate$"
