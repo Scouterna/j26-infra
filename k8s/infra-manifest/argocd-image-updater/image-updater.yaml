@@ -1,0 +1,14 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: image-updater
+  namespace: argocd
+spec:
+  namespace: argocd  # Target namespace where Argo CD Applications are located
+  applicationRefs:
+    - namePattern: "j26-app"  # Select applications matching this pattern
+      images:
+        - alias: "j26-app"
+          imageName: "ghcr.io/scouterna/j26-app"
+          commonUpdateSettings:
+            updateStrategy: "newest-build"
