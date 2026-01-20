@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: j26-signupinfo
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: app.dev.j26.se
+      http:
+        paths:
+          - path: /_services/signupinfo(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: j26-signupinfo
+                port:
+                  number: 80
