@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: j26-signupinfo-config
 data:
-  scoutnet_activity_id: 56032
+  scoutnet_activity_id: "56032"
   # scoutview_debug_email:
   # scoutview_roles:
   keycloak_url: https://admin.dev.id.scouterna.se
