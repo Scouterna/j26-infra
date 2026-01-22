@@ -13,6 +13,13 @@ spec:
           commonUpdateSettings:
             updateStrategy: "newest-build"
 
+    - namePattern: "j26-auth"
+      images:
+        - alias: "app"
+          imageName: "ghcr.io/scouterna/j26-auth"
+          commonUpdateSettings:
+            updateStrategy: "newest-build"
+
     - namePattern: "j26-booking"
       images:
         - alias: "app"
