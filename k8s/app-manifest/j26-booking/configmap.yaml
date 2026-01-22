@@ -4,3 +4,4 @@ metadata:
   name: j26-booking-config
 data:
   BASE_PATH: /_services/booking
+  JWKS_URL: https://app.dev.j26.se/auth/certs
