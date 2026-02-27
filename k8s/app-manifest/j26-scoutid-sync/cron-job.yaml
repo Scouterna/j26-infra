@@ -9,7 +9,7 @@ spec:
       template:
         spec:
           restartPolicy: Never
-          concurrencyPolicy: Forbid
+          # concurrencyPolicy: Forbid
           containers:
             - name: scoutid-sync
               image: ghcr.io/scouterna/j26-scoutid-sync:b2ae1bd
