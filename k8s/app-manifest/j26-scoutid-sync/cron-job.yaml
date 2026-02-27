@@ -8,6 +8,7 @@ spec:
     spec:
       template:
         spec:
+          restartPolicy: Never
           containers:
             - name: scoutid-sync
               image: ghcr.io/scouterna/j26-scoutid-sync:b2ae1bd
