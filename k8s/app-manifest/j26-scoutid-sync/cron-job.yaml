@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: j26-scoutid-sync
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: scoutid-sync
+              image: ghcr.io/scouterna/j26-scoutid-sync:b2ae1bd
+              envFrom:
+                - configMapRef:
+                    name: j26-scoutid-sync-config
+                - secretRef:
+                    name: j26-scoutid-sync-secrets
+              volumeMounts:
+                - name: secrets-store
+                  mountPath: "/mnt/secrets-store"
+                  readOnly: true
+                - name: config-file
+                  mountPath: /app/config.yml
+                  subPath: config.yml
+                  readOnly: true
+          volumes:
+            - name: secrets-store
+              csi:
+                driver: secrets-store.csi.k8s.io
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: j26-scoutid-sync-kv-csi
+            - name: config-file
+              configMap:
+                name: j26-scoutid-sync-config-file
