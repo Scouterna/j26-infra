@@ -1,5 +1,6 @@
 assignments:
 - groups: [j26-staff]
+  # Uses GitHub Actions expression syntax, see https://docs.github.com/en/actions/reference/workflows-and-actions/expressions
   if: |
     contains(fromJSON('["Funktionär"]'), fee.name) &&
     getAnswer('Internt', 'Allokering', 'Funktion')
