@@ -1,10 +1,10 @@
 assignments:
 - groups: [j26-staff]
   if: |
-    contains(fee.name, 'Funktionär') &&
+    contains(['Funktionär'], fee.name) &&
     getAnswer('Internt', 'Allokering', 'Funktion')
 
 - groups: [j26-planning-staff]
   if: |
-    contains(fee.name, 'Funktionär') &&
+    contains(['Funktionär'], fee.name) &&
     getAnswer('Internt', 'Allokering', 'Planeringsfunktionär') == 'checked'
