@@ -2,10 +2,10 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: j26-signupinfo-config
-data:
-  scoutnet_activity_id: "56032"
+data: {}
+  # scoutnet_activity_id: "56032"
   # scoutview_debug_email:
   # scoutview_roles:
-  keycloak_url: https://admin.dev.id.scouterna.se
-  keycloak_realm: jamboree26
+  # keycloak_url: https://admin.dev.id.scouterna.se
+  # keycloak_realm: jamboree26
   # keycloak_client_id:
