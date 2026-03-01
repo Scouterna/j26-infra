@@ -4,6 +4,6 @@ metadata:
   name: j26-app-config
 data:
   NITRO_PUBLIC_TOLGEE_BACKEND_FETCH_PREFIX: https://j26-translations.jamboree.se/dbc78bc1f5f74fadae0a49abfe745c57
-  NITRO_PUBLIC_APP_CONFIGS: /app-config.json,/another-config.json,/_services/booking/api/app-config,/_services/signupinfo/api/app-config
+  NITRO_PUBLIC_APP_CONFIGS: /app-config.json,/another-config.json,/_services/booking/api/app-config,/_services/signupinfo/app-config
   NITRO_PUBLIC_BOTTOM_NAV_ITEMS: page_my_schedule,page_all_activities,page_map,page_more
   NITRO_PUBLIC_NOTIFICATIONS_TENANT: jamboree26
