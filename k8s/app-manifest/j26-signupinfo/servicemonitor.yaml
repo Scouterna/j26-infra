@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: j26-signupinfo
+  namespace: j26-signupinfo
+  labels:
+    release: kps
+spec:
+  namespaceSelector:
+    matchNames:
+      - j26-signupinfo
+  selector:
+    matchLabels:
+      app: j26-signupinfo
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
