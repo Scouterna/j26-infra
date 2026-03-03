@@ -18,6 +18,11 @@ grafana:
         hosts:
           - grafana.j26.se
 
+  grafana.ini:
+    server:
+      domain: grafana.j26.se
+      root_url: https://grafana.j26.se
+
   persistence:
     enabled: true
     storageClassName: disk-standardssd

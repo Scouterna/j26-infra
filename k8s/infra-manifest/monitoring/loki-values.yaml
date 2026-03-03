@@ -40,3 +40,9 @@ read:
 
 backend:
   replicas: 0
+
+chunksCache:
+  allocatedMemory: 256
+
+resultsCache:
+  allocatedMemory: 64
