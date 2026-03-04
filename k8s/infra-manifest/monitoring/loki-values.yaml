@@ -43,6 +43,12 @@ backend:
 
 chunksCache:
   allocatedMemory: 256
+  resources:
+    requests:
+      cpu: 50m
 
 resultsCache:
   allocatedMemory: 64
+  resources:
+    requests:
+      cpu: 50m
