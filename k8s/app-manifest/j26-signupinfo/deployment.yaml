@@ -26,6 +26,8 @@ spec:
             - name: secrets-store
               mountPath: "/mnt/secrets-store"
               readOnly: true
+            - name: persist
+              mountPath: /app/persist
       volumes:
         - name: secrets-store
           csi:
@@ -33,3 +35,7 @@ spec:
             readOnly: true
             volumeAttributes:
               secretProviderClass: j26-signupinfo-kv-csi
+        - name: persist
+          hostPath:
+            path: /var/j26/signupinfo-persist
+            type: DirectoryOrCreate
