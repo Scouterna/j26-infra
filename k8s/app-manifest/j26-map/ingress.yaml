@@ -1,19 +1,19 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
   name: j26-map
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: j26-map
-  template:
-    metadata:
-      labels:
-        app: j26-map
-    spec:
-      containers:
-        - name: j26-map
-          image: ghcr.io/scouterna/j26-map:latest
-          ports:
-            - containerPort: 80
+  ingressClassName: nginx
+  rules:
+    - host: app.dev.j26.se
+      http:
+        paths:
+          - path: /_services/map(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: j26-map
+                port:
+                  number: 80
