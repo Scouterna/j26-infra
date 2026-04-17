@@ -61,7 +61,8 @@ PostgreSQL secrets are pre-created in each namespace by Azure Service Connector 
 
 Apps reference the resulting secret by name and key:
 
-- `sc-postgresql531ff-secret` — used by j26-platsbank and j26-app-strapi; keys: `AZURE_POSTGRESQL_HOST`, `AZURE_POSTGRESQL_PORT`, `AZURE_POSTGRESQL_DATABASE`, `AZURE_POSTGRESQL_USER`, `AZURE_POSTGRESQL_PASSWORD`
+- `sc-postgresql531ff-secret` — used by j26-platsbank; keys: `AZURE_POSTGRESQL_HOST`, `AZURE_POSTGRESQL_PORT`, `AZURE_POSTGRESQL_DATABASE`, `AZURE_POSTGRESQL_USER`, `AZURE_POSTGRESQL_PASSWORD`
+- `sc-postgresql3666b-secret` — used by j26-app-strapi; same keys as above
 - `sc-postgresqla5566-secret` — used by j26-booking; keys use `AZURE_POSTGRESQL_USERNAME` (not `USER`)
 
 Apps that use a `DATABASE_URL` (e.g. Prisma) compose it via env var interpolation:

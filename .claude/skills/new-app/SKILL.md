@@ -10,7 +10,7 @@ Ask the user for the following before creating any files. Collect all answers fi
 1. **App name** — used as `j26-{name}` (e.g. `booking` → `j26-booking`). If provided as `$ARGUMENTS`, use that and skip asking.
 2. **Container port** — what port does the container listen on?
 3. **Ingress path** — path under `app.dev.j26.se` (e.g. `/_services/foo` or `/foo`)
-4. **Database access** — needs PostgreSQL (`sc-postgresql531ff-secret`)? If yes: `DATABASE_URL` string (Prisma/single-env style) or individual `DATABASE_*` vars (Strapi style)?
+4. **Database access** — needs PostgreSQL? If yes: which server secret (`sc-postgresql531ff-secret`, `sc-postgresql3666b-secret`, `sc-postgresqla5566-secret`)? And `DATABASE_URL` string (Prisma/single-env style) or individual `DATABASE_*` vars (Strapi style)?
 5. **Migrations** — run an initContainer before the main container?
 6. **Azure KV secrets** — env var names of secrets needed from Azure KV (e.g. `SECRET_KEY_BASE`, `JWT_SECRET`). Blank if none.
 7. **Extra configmap entries** — any non-sensitive env vars for the configmap?
