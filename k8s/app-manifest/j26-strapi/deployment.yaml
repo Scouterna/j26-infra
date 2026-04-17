@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: j26-strapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: j26-strapi
+  template:
+    metadata:
+      labels:
+        app: j26-strapi
+    spec:
+      containers:
+        - name: j26-strapi-app
+          image: ghcr.io/scouterna/j26-app-strapi:latest
+          ports:
+            - containerPort: 1337
+          envFrom:
+            - configMapRef:
+                name: j26-strapi-config
+            - secretRef:
+                name: j26-strapi-secrets
+          env:
+            - name: DATABASE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: sc-postgresql3666b-secret
+                  key: AZURE_POSTGRESQL_HOST
+            - name: DATABASE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: sc-postgresql3666b-secret
+                  key: AZURE_POSTGRESQL_PORT
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: sc-postgresql3666b-secret
+                  key: AZURE_POSTGRESQL_DATABASE
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: sc-postgresql3666b-secret
+                  key: AZURE_POSTGRESQL_USER
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sc-postgresql3666b-secret
+                  key: AZURE_POSTGRESQL_PASSWORD
+          volumeMounts:
+            - name: secrets-store
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: j26-strapi-kv-csi

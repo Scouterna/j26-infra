@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: j26-strapi
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /_services/strapi/$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: app.dev.j26.se
+      http:
+        paths:
+          - path: /_services/strapi(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: j26-strapi
+                port:
+                  number: 80

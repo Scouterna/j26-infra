@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: j26-strapi-config
+data:
+  HOST: "0.0.0.0"
+  PORT: "1337"
+  DATABASE_CLIENT: "postgres"
+  DATABASE_SSL: "false"
