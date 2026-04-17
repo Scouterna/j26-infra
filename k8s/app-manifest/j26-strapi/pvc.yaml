@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: j26-strapi-uploads
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: disk-standardssd
+  resources:
+    requests:
+      storage: 10Gi
