@@ -4,6 +4,7 @@ metadata:
   name: j26-strapi-config
 data:
   HOST: "0.0.0.0"
+  URL: "https://app.dev.j26.se/_services/strapi"
   PORT: "1337"
   DATABASE_CLIENT: "postgres"
   DATABASE_SSL: "true"
