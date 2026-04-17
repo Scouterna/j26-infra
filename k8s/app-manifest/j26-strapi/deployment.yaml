@@ -50,6 +50,20 @@ spec:
                 secretKeyRef:
                   name: sc-postgresql7aaa4-secret
                   key: AZURE_POSTGRESQL_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /_health
+              port: 1337
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /_health
+              port: 1337
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 3
           volumeMounts:
             - name: secrets-store
               mountPath: "/mnt/secrets-store"
