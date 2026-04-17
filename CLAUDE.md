@@ -53,7 +53,13 @@ KV secret names follow the pattern `{app-name}-{env-var-name-lowercased-with-hyp
 
 ## Database Access
 
-PostgreSQL secrets are pre-created in each namespace by Azure Service Connector — they are not managed in this repo. Apps reference them by name and key:
+PostgreSQL secrets are pre-created in each namespace by Azure Service Connector — they are not managed in this repo. To set up database access for a new app:
+
+1. Create the database in Azure Portal (on the PostgreSQL flexible server)
+2. Create a PostgreSQL user via DBeaver and grant full access to the `public` schema on the specific database only (not server-wide)
+3. In the AKS cluster → Service Connector, create a new connection using type **Connection string**, targeting the new app's namespace
+
+Apps reference the resulting secret by name and key:
 
 - `sc-postgresql531ff-secret` — used by j26-platsbank and j26-app-strapi; keys: `AZURE_POSTGRESQL_HOST`, `AZURE_POSTGRESQL_PORT`, `AZURE_POSTGRESQL_DATABASE`, `AZURE_POSTGRESQL_USER`, `AZURE_POSTGRESQL_PASSWORD`
 - `sc-postgresqla5566-secret` — used by j26-booking; keys use `AZURE_POSTGRESQL_USERNAME` (not `USER`)

@@ -68,4 +68,10 @@ Add a `namePattern` entry for `j26-{name}` tracking `ghcr.io/scouterna/j26-{name
 
 ---
 
-After creating all files, remind the user to **manually add any Azure Key Vault secrets** for this app before the first deploy.
+After creating all files, remind the user of the following manual steps before the first deploy:
+
+1. **Azure Key Vault secrets** — create any KV secrets for this app in `kv-j26apps-shared-sdc`
+2. **Database setup** (if the app uses PostgreSQL):
+   - Create the database in Azure Portal (on the PostgreSQL flexible server)
+   - Create a PostgreSQL user via DBeaver and grant full access to the `public` schema on the specific database only (not server-wide)
+   - In the AKS cluster → Service Connector, create a new connection using type **Connection string**, targeting the new app's namespace
