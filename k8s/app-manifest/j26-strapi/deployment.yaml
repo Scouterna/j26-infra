@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: j26-strapi-app
-          image: ghcr.io/scouterna/j26-app-strapi:latest
+          image: ghcr.io/scouterna/j26-strapi:latest
           ports:
             - containerPort: 1337
           envFrom:

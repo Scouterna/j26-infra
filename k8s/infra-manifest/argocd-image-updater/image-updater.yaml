@@ -48,7 +48,7 @@ spec:
     - namePattern: "j26-strapi"
       images:
         - alias: "app"
-          imageName: "ghcr.io/scouterna/j26-app-strapi"
+          imageName: "ghcr.io/scouterna/j26-strapi"
           commonUpdateSettings:
             updateStrategy: "newest-build"
 
