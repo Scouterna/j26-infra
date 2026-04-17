@@ -12,6 +12,8 @@ spec:
       labels:
         app: j26-strapi
     spec:
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: j26-strapi-app
           image: ghcr.io/scouterna/j26-strapi:latest
