@@ -20,3 +20,16 @@ spec:
           envFrom:
             - configMapRef:
                 name: j26-app-config
+            - secretRef:
+                name: j26-app-secrets
+          volumeMounts:
+            - name: secrets-store
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: j26-app-kv-csi
