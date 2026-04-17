@@ -26,27 +26,27 @@ spec:
             - name: DATABASE_HOST
               valueFrom:
                 secretKeyRef:
-                  name: sc-postgresql3666b-secret
+                  name: sc-postgresql7aaa4-secret
                   key: AZURE_POSTGRESQL_HOST
             - name: DATABASE_PORT
               valueFrom:
                 secretKeyRef:
-                  name: sc-postgresql3666b-secret
+                  name: sc-postgresql7aaa4-secret
                   key: AZURE_POSTGRESQL_PORT
             - name: DATABASE_NAME
               valueFrom:
                 secretKeyRef:
-                  name: sc-postgresql3666b-secret
+                  name: sc-postgresql7aaa4-secret
                   key: AZURE_POSTGRESQL_DATABASE
             - name: DATABASE_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: sc-postgresql3666b-secret
+                  name: sc-postgresql7aaa4-secret
                   key: AZURE_POSTGRESQL_USER
             - name: DATABASE_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: sc-postgresql3666b-secret
+                  name: sc-postgresql7aaa4-secret
                   key: AZURE_POSTGRESQL_PASSWORD
           volumeMounts:
             - name: secrets-store
