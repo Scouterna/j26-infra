@@ -3,4 +3,4 @@ kind: ConfigMap
 metadata:
   name: j26-cms-config
 data:
-  SERVER_URL: "https://app.dev.j26.se/_services/cms"
+  SERVER_URL: "https://app.dev.j26.se"
