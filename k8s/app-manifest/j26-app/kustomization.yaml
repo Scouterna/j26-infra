@@ -3,7 +3,6 @@ kind: Kustomization
 
 resources:
   - configmap.yaml
-  - secret-provider-class.yaml
   - deployment.yaml
   - service.yaml
   - ingress.yaml

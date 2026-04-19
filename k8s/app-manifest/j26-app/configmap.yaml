@@ -10,5 +10,5 @@ data:
   NITRO_PUBLIC_ADDITIONAL_ROOT_PATHS: /notifs
   NITRO_PUBLIC_NOTIFICATIONS_TENANT: jamboree26
   NITRO_PUBLIC_DEV_BANNER_MESSAGE: "Det här är en utvecklingsversion av appen. Vissa funktioner kanske inte fungerar som de ska."
-  NITRO_PUBLIC_STRAPI_API_URL: https://app.dev.j26.se/_services/cms/api/
-  NITRO_PUBLIC_STRAPI_LOCALES: sv,en
+  NITRO_PUBLIC_PAYLOAD_API_URL: https://app.dev.j26.se/_services/cms/api
+  NITRO_PUBLIC_PAYLOAD_LOCALES: sv,en
