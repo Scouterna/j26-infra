@@ -23,7 +23,7 @@ Each app in `app-manifest/` has its own namespace and typically contains: `deplo
 
 ## Naming Conventions
 
-- Apps: `j26-{service-name}` (e.g. `j26-booking`, `j26-strapi`)
+- Apps: `j26-{service-name}` (e.g. `j26-booking`, `j26-cms`)
 - Images: `ghcr.io/scouterna/{app-name}:latest`
 - Migration images: `ghcr.io/scouterna/{app-name}-migrate:latest`
 - ConfigMaps: `{app-name}-config`
@@ -62,7 +62,7 @@ PostgreSQL secrets are pre-created in each namespace by Azure Service Connector 
 Apps reference the resulting secret by name and key:
 
 - `sc-postgresql531ff-secret` — used by j26-platsbank; keys: `AZURE_POSTGRESQL_HOST`, `AZURE_POSTGRESQL_PORT`, `AZURE_POSTGRESQL_DATABASE`, `AZURE_POSTGRESQL_USER`, `AZURE_POSTGRESQL_PASSWORD`
-- `sc-postgresql7aaa4-secret` — used by j26-strapi; same keys as above
+- `sc-postgresql7aaa4-secret` — used by j26-cms; same keys as above
 - `sc-postgresqla5566-secret` — used by j26-booking; keys use `AZURE_POSTGRESQL_USERNAME` (not `USER`)
 
 Apps that use a `DATABASE_URL` (e.g. Prisma) compose it via env var interpolation:
@@ -70,7 +70,7 @@ Apps that use a `DATABASE_URL` (e.g. Prisma) compose it via env var interpolatio
 value: "postgresql://$(AZURE_POSTGRESQL_USER):$(AZURE_POSTGRESQL_PASSWORD)@$(AZURE_POSTGRESQL_HOST):$(AZURE_POSTGRESQL_PORT)/$(AZURE_POSTGRESQL_DATABASE)?sslmode=require"
 ```
 
-Apps that take individual DB vars (e.g. Strapi) map them with `valueFrom.secretKeyRef`.
+Apps that take individual DB vars map them with `valueFrom.secretKeyRef`.
 
 ## Ingress
 

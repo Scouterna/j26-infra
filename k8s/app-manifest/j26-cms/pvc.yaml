@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: j26-strapi-uploads
+  name: j26-cms-uploads
 spec:
   accessModes:
     - ReadWriteOnce

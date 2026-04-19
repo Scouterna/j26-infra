@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: j26-strapi
+  name: j26-cms
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -10,10 +10,10 @@ spec:
   source:
     repoURL: https://github.com/Scouterna/j26-infra.git
     targetRevision: HEAD
-    path: k8s/app-manifest/j26-strapi
+    path: k8s/app-manifest/j26-cms
   destination:
     server: https://kubernetes.default.svc
-    namespace: j26-strapi
+    namespace: j26-cms
   syncPolicy:
     automated:
       prune: true

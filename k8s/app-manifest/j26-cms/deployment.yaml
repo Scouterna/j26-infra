@@ -1,82 +1,70 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: j26-strapi
+  name: j26-cms
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: j26-strapi
+      app: j26-cms
   template:
     metadata:
       labels:
-        app: j26-strapi
+        app: j26-cms
     spec:
       securityContext:
         fsGroup: 1000
       containers:
-        - name: j26-strapi-app
-          image: ghcr.io/scouterna/j26-strapi:latest
+        - name: j26-cms-app
+          image: ghcr.io/scouterna/j26-cms:latest
           ports:
-            - containerPort: 1337
+            - containerPort: 3000
           envFrom:
             - configMapRef:
-                name: j26-strapi-config
+                name: j26-cms-config
             - secretRef:
-                name: j26-strapi-secrets
+                name: j26-cms-secrets
           env:
-            - name: DATABASE_HOST
+            - name: AZURE_POSTGRESQL_HOST
               valueFrom:
                 secretKeyRef:
                   name: sc-postgresql7aaa4-secret
                   key: AZURE_POSTGRESQL_HOST
-            - name: DATABASE_PORT
+            - name: AZURE_POSTGRESQL_PORT
               valueFrom:
                 secretKeyRef:
                   name: sc-postgresql7aaa4-secret
                   key: AZURE_POSTGRESQL_PORT
-            - name: DATABASE_NAME
+            - name: AZURE_POSTGRESQL_DATABASE
               valueFrom:
                 secretKeyRef:
                   name: sc-postgresql7aaa4-secret
                   key: AZURE_POSTGRESQL_DATABASE
-            - name: DATABASE_USERNAME
+            - name: AZURE_POSTGRESQL_USER
               valueFrom:
                 secretKeyRef:
                   name: sc-postgresql7aaa4-secret
                   key: AZURE_POSTGRESQL_USER
-            - name: DATABASE_PASSWORD
+            - name: AZURE_POSTGRESQL_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: sc-postgresql7aaa4-secret
                   key: AZURE_POSTGRESQL_PASSWORD
-          readinessProbe:
-            httpGet:
-              path: /_health
-              port: 1337
-            initialDelaySeconds: 15
-            periodSeconds: 10
-            failureThreshold: 3
-          livenessProbe:
-            httpGet:
-              path: /_health
-              port: 1337
-            initialDelaySeconds: 30
-            periodSeconds: 15
-            failureThreshold: 3
+            - name: DATABASE_URL
+              value: "postgresql://$(AZURE_POSTGRESQL_USER):$(AZURE_POSTGRESQL_PASSWORD)@$(AZURE_POSTGRESQL_HOST):$(AZURE_POSTGRESQL_PORT)/$(AZURE_POSTGRESQL_DATABASE)?sslmode=require"
           volumeMounts:
             - name: secrets-store
               mountPath: "/mnt/secrets-store"
               readOnly: true
             - name: uploads
-              mountPath: "/opt/app/public/uploads"
+              mountPath: "/app/media"
       volumes:
         - name: secrets-store
           csi:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
-              secretProviderClass: j26-strapi-kv-csi
+              secretProviderClass: j26-cms-kv-csi
         - name: uploads
           persistentVolumeClaim:
-            claimName: j26-strapi-uploads
+            claimName: j26-cms-uploads

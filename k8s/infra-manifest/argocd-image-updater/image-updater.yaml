@@ -45,10 +45,10 @@ spec:
           commonUpdateSettings:
             updateStrategy: "newest-build"
 
-    - namePattern: "j26-strapi"
+    - namePattern: "j26-cms"
       images:
         - alias: "app"
-          imageName: "ghcr.io/scouterna/j26-strapi"
+          imageName: "ghcr.io/scouterna/j26-cms"
           commonUpdateSettings:
             updateStrategy: "newest-build"
 

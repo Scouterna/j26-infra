@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: j26-strapi
+  name: j26-cms
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
     nginx.ingress.kubernetes.io/proxy-body-size: "50m"
@@ -11,10 +11,10 @@ spec:
     - host: app.dev.j26.se
       http:
         paths:
-          - path: /_services/strapi(/|$)(.*)
+          - path: /_services/cms(/|$)(.*)
             pathType: ImplementationSpecific
             backend:
               service:
-                name: j26-strapi
+                name: j26-cms
                 port:
                   number: 80
