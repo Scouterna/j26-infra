@@ -3,12 +3,12 @@ kind: ConfigMap
 metadata:
   name: j26-app-config
 data:
-  NITRO_PUBLIC_TOLGEE_BACKEND_FETCH_PREFIX: https://j26-translations.jamboree.se/dbc78bc1f5f74fadae0a49abfe745c57
-  # NITRO_PUBLIC_APP_CONFIGS: /app-config.json,/another-config.json,/_services/booking/api/app-config,/_services/signupinfo/app-config
-  NITRO_PUBLIC_APP_CONFIGS: /app-config.json,/_services/signupinfo/app-config,/_services/platsbank/app-config.json
-  NITRO_PUBLIC_BOTTOM_NAV_ITEMS: page_info,page_my_schedule,page_all_activities,page_map,page_more
-  NITRO_PUBLIC_ADDITIONAL_ROOT_PATHS: /notifs
-  NITRO_PUBLIC_NOTIFICATIONS_TENANT: jamboree26
-  NITRO_PUBLIC_DEV_BANNER_MESSAGE: "Det här är en utvecklingsversion av appen. Vissa funktioner kanske inte fungerar som de ska."
-  NITRO_PUBLIC_PAYLOAD_API_URL: https://app.dev.j26.se/_services/cms/api
-  NITRO_PUBLIC_PAYLOAD_LOCALES: sv,en
+  J26_PUBLIC_TOLGEE_BACKEND_FETCH_PREFIX: https://j26-translations.jamboree.se/dbc78bc1f5f74fadae0a49abfe745c57
+  # J26_PUBLIC_APP_CONFIGS: /app-config.json,/another-config.json,/_services/booking/api/app-config,/_services/signupinfo/app-config
+  J26_PUBLIC_APP_CONFIGS: /app-config.json,/_services/signupinfo/app-config,/_services/platsbank/app-config.json
+  J26_PUBLIC_BOTTOM_NAV_ITEMS: page_info,page_my_schedule,page_all_activities,page_map,page_more
+  J26_PUBLIC_ADDITIONAL_ROOT_PATHS: /notifs
+  J26_PUBLIC_NOTIFICATIONS_TENANT: jamboree26
+  J26_PUBLIC_DEV_BANNER_MESSAGE: "Det här är en utvecklingsversion av appen. Vissa funktioner kanske inte fungerar som de ska."
+  J26_PUBLIC_PAYLOAD_API_URL: https://app.dev.j26.se/_services/cms/api
+  J26_PUBLIC_PAYLOAD_LOCALES: sv,en
