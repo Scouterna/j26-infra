@@ -38,7 +38,7 @@ grafana:
 prometheus:
   prometheusSpec:
     retention: 90d
-    retentionSize: 28GB
+    retentionSize: 56GB
     storageSpec:
       volumeClaimTemplate:
         spec:
@@ -46,7 +46,7 @@ prometheus:
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:
-              storage: 32Gi
+              storage: 64Gi
 
 alertmanager:
   alertmanagerSpec:
