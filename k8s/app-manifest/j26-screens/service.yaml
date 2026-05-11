@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: j26-screens
+spec:
+  selector:
+    app: j26-screens
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
