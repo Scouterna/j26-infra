@@ -2,7 +2,7 @@
 name: new-app
 description: Scaffold a new j26 microservice — creates all manifests, ArgoCD Application, and image updater entry.
 argument-hint: [app-name]
-disable-model-invocation: true
+disable-model-invocation: false
 ---
 
 Ask the user for the following before creating any files. Collect all answers first, then act in one go:
