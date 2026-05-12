@@ -22,7 +22,7 @@ spec:
             - secretRef:
                 name: j26-scoutin-2-secrets
             - secretRef:
-                name: sc-postgresql-scoutin2-secret
+                name: sc-postgresql8e64d-secret
           volumeMounts:
             - name: secrets-store
               mountPath: "/mnt/secrets-store"
@@ -41,7 +41,7 @@ spec:
             - secretRef:
                 name: j26-scoutin-2-secrets
             - secretRef:
-                name: sc-postgresql-scoutin2-secret
+                name: sc-postgresql8e64d-secret
           volumeMounts:
             - name: secrets-store
               mountPath: "/mnt/secrets-store"
