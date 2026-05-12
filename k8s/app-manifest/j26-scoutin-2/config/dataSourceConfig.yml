@@ -1,0 +1,42 @@
+dataSources:
+  groups:
+    name:
+      sv: ledare i din kår
+      en: leader in your scout group
+    provider: scoutnet
+    projectId: 56032
+    includeIndividuals: false
+    includeGroups: true
+    subGroups:
+      leader:
+        name:
+          sv: Ledare
+          en: Leader
+        condition: |
+          ${{
+            participant.fee_id == 32006 || # Ledaravgift
+            participant.fee_id == 32007 || # Ledaravgift kortvecka
+            participant.fee_id == 31997 || # Ledaravgift efteranmälan
+            participant.fee_id == 31988    # Ledaravgift kortvecka efteranmälan
+          }}
+    keys:
+      groups: ${SCOUTNET_GROUPS_GROUPS_KEY}
+      participants: ${SCOUTNET_GROUPS_PARTICIPANTS_KEY}
+      checkin: ${SCOUTNET_GROUPS_CHECKIN_KEY}
+      questions: ${SCOUTNET_GROUPS_QUESTIONS_KEY}
+
+  staff:
+    name:
+      sv: funktionär
+      en: staff (IST)
+    provider: scoutnet
+    projectId: 56033
+    feeIds:
+      - 32016
+    includeIndividuals: true
+    includeGroups: false
+    keys:
+      groups: ${SCOUTNET_STAFF_GROUPS_KEY}
+      participants: ${SCOUTNET_STAFF_PARTICIPANTS_KEY}
+      checkin: ${SCOUTNET_STAFF_CHECKIN_KEY}
+      questions: ${SCOUTNET_STAFF_QUESTIONS_KEY}

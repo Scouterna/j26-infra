@@ -1,0 +1,51 @@
+# Steps are executed in order. Each step can produce outputs that can be used
+# by later steps.
+#
+# The output of each step is persisted in the checkin session. This way the flow
+# can be resumed if interrupted.
+steps:
+  # The identify step prompts the user to identify themselves. If the user
+  # exists in multiple data sources, the user will be prompted to select which
+  # one to use.
+  - uses: base:identify
+    id: identify
+    with:
+      scannerSide: right
+
+  - if: |
+      ${{
+        steps.identify.outputs.dataSource == 'groups' &&
+        steps.identify.outputs.participant.subGroup != 'leader'
+      }}
+    uses: base:block
+    with:
+      title: "Du kan inte checka in"
+      message: "Endast ledare kan checka in deltagare."
+
+  # deduplicateSession will ensure that there is only one session active for the
+  # actor. If there are any other sessions the user is prompted to "Pick up
+  # where you left off" or "Start over". If the user chooses to start over, the
+  # old session is deleted. If the user chooses to pick up where they left off,
+  # the current flow is aborted and the old session is resumed.
+  - uses: base:deduplicateSession
+
+  - if: ${{ steps.identify.outputs.dataSource == 'staff' }}
+    # setActorAsSubject sets the session.subjects to the actorId from the session.
+    uses: base:setActorAsSubject
+
+  - if: ${{ steps.identify.outputs.dataSource == 'groups' }}
+    # selectSubjects will automatically use the actorId from the session to
+    # determine which members they can select, so we don't need to pass it
+    # explicitly here.
+    uses: base:selectSubjects
+
+  # verifySafeFromHarm will check that all selected subjects for which it
+  # applies have a valid Safe From Harm status in Scoutnet.
+  - uses: scoutnet:verifySafeFromHarm
+
+  - uses: printer:print
+    with:
+      template: badge
+      # For every item in the values array a new print job will be created with
+      # those values passed to it.
+      values: ${{ session.subjects }}

@@ -10,7 +10,7 @@ Ask the user for the following before creating any files. Collect all answers fi
 1. **App name** — used as `j26-{name}` (e.g. `booking` → `j26-booking`). If provided as `$ARGUMENTS`, use that and skip asking.
 2. **Container port** — what port does the container listen on?
 3. **Ingress path** — path under `app.dev.j26.se` (e.g. `/_services/foo` or `/foo`)
-4. **Database access** — needs PostgreSQL? If yes: which server secret (`sc-postgresql531ff-secret`, `sc-postgresql3666b-secret`, `sc-postgresqla5566-secret`)? And `DATABASE_URL` string (Prisma/single-env style) or individual `DATABASE_*` vars (Strapi style)?
+4. **Database access** — needs PostgreSQL? If yes: `DATABASE_URL` string (Prisma/single-env style) or individual `DATABASE_*` vars (Strapi style)? Note: each app gets its own dedicated Service Connector secret — never reuse an existing `sc-postgresql*-secret` from another app.
 5. **Migrations** — run an initContainer before the main container?
 6. **Azure KV secrets** — env var names of secrets needed from Azure KV (e.g. `SECRET_KEY_BASE`, `JWT_SECRET`). Blank if none.
 7. **Extra configmap entries** — any non-sensitive env vars for the configmap?
@@ -43,8 +43,9 @@ The materialised Kubernetes secret name must be `j26-{name}-secrets`.
 
 - Only add an `initContainer` if migrations were requested.
 - If KV secrets: add CSI `volumeMounts` (`/mnt/secrets-store`, readOnly) and a `volumes` block referencing `j26-{name}-kv-csi`. Reference the materialised secret via `secretRef: name: j26-{name}-secrets` in `envFrom`.
-- **DATABASE_URL style**: add `secretRef: name: sc-postgresql531ff-secret` in `envFrom` and compose `DATABASE_URL` via env var interpolation (see `k8s/app-manifest/j26-platsbank/deployment.yaml`).
-- **Individual DB vars style**: map each with `valueFrom.secretKeyRef` from `sc-postgresql531ff-secret` using keys `AZURE_POSTGRESQL_HOST`, `AZURE_POSTGRESQL_PORT`, `AZURE_POSTGRESQL_DATABASE`, `AZURE_POSTGRESQL_USER`, `AZURE_POSTGRESQL_PASSWORD`.
+- **DATABASE_URL style**: add `secretRef: name: sc-postgresql{id}-secret` in `envFrom` and compose `DATABASE_URL` via env var interpolation (see `k8s/app-manifest/j26-platsbank/deployment.yaml`).
+- **Individual DB vars style**: map each with `valueFrom.secretKeyRef` from `sc-postgresql{id}-secret` using keys `AZURE_POSTGRESQL_HOST`, `AZURE_POSTGRESQL_PORT`, `AZURE_POSTGRESQL_DATABASE`, `AZURE_POSTGRESQL_USER`, `AZURE_POSTGRESQL_PASSWORD`.
+- The `{id}` suffix is unique per app — use the secret name provided by the user after they create the Service Connector. Never substitute an existing app's secret name.
 
 ### `k8s/app-manifest/j26-{name}/service.yaml`
 

@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: j26-scoutin-2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: j26-scoutin-2
+  template:
+    metadata:
+      labels:
+        app: j26-scoutin-2
+    spec:
+      initContainers:
+        - name: j26-scoutin-2-init-migrate
+          image: ghcr.io/scouterna/scoutin-2:latest
+          command: ["node_modules/.bin/prisma", "migrate", "deploy"]
+          envFrom:
+            - configMapRef:
+                name: j26-scoutin-2-config
+            - secretRef:
+                name: j26-scoutin-2-secrets
+            - secretRef:
+                name: sc-postgresql-scoutin2-secret
+          volumeMounts:
+            - name: secrets-store
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://$(AZURE_POSTGRESQL_USER):$(AZURE_POSTGRESQL_PASSWORD)@$(AZURE_POSTGRESQL_HOST):$(AZURE_POSTGRESQL_PORT)/$(AZURE_POSTGRESQL_DATABASE)?sslmode=require"
+      containers:
+        - name: j26-scoutin-2-app
+          image: ghcr.io/scouterna/scoutin-2:latest
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: j26-scoutin-2-config
+            - secretRef:
+                name: j26-scoutin-2-secrets
+            - secretRef:
+                name: sc-postgresql-scoutin2-secret
+          volumeMounts:
+            - name: secrets-store
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+            - name: config-files
+              mountPath: /app/config
+              readOnly: true
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://$(AZURE_POSTGRESQL_USER):$(AZURE_POSTGRESQL_PASSWORD)@$(AZURE_POSTGRESQL_HOST):$(AZURE_POSTGRESQL_PORT)/$(AZURE_POSTGRESQL_DATABASE)?sslmode=require"
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: j26-scoutin-2-kv-csi
+        - name: config-files
+          configMap:
+            name: j26-scoutin-2-config-files

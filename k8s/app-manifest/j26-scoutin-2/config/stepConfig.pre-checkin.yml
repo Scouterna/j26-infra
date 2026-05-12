@@ -1,0 +1,24 @@
+steps:
+  - uses: base:identify
+    id: identify
+    with:
+      identifierHint: ${{ session.params.membershipNumber }}
+      skipConfirmation: true
+      dataSources:
+        - groups
+
+  - if: |
+      ${{
+        steps.identify.outputs.dataSource == 'groups' &&
+        steps.identify.outputs.participant.subGroup != 'leader'
+      }}
+    uses: base:block
+    with:
+      title: "Du kan inte checka in"
+      message: "Endast ledare kan checka in deltagare."
+
+  - uses: base:deduplicateSession
+    with:
+      force: resume
+
+  - uses: base:selectSubjects
