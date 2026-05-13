@@ -88,6 +88,6 @@ dataSources:
     # activeFrom: 2026-05-13T17:36:00+02:00
     # activeTo: 2026-05-13T17:39:00+02:00
     providerOptions:
-      spreadsheetId: ${GOOGLE_SPREADSHEET_ID}
+      spreadsheetId: 1RWd-jRfRncwTCWYhY6KjuLys4rwFljE3yHy2YJasV3U
       sheetName: People
       serviceAccountKey: ${GOOGLE_SA_KEY}
