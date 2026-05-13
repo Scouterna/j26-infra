@@ -28,8 +28,14 @@ steps:
   # old session is deleted. If the user chooses to pick up where they left off,
   # the current flow is aborted and the old session is resumed.
   - uses: base:deduplicateSession
+    with:
+      force: ${{ steps.identify.outputs.dataSource == 'stormote6_ordinary' && 'new' || null }}
 
-  - if: ${{ steps.identify.outputs.dataSource == 'staff' }}
+  - if: |
+      ${{
+        steps.identify.outputs.dataSource == 'staff' ||
+        steps.identify.outputs.dataSource == 'stormote6_ordinary'
+      }}
     # setActorAsSubject sets the session.subjects to the actorId from the session.
     uses: base:setActorAsSubject
 
@@ -39,13 +45,30 @@ steps:
     # explicitly here.
     uses: base:selectSubjects
 
-  # verifySafeFromHarm will check that all selected subjects for which it
-  # applies have a valid Safe From Harm status in Scoutnet.
-  - uses: scoutnet:verifySafeFromHarm
+  # # verifySafeFromHarm will check that all selected subjects for which it
+  # # applies have a valid Safe From Harm status in Scoutnet.
+  # - uses: scoutnet:verifySafeFromHarm
 
-  - uses: printer:print
+  # - uses: base:message
+  #   required: true
+  #   with:
+  #     title: Dummy safe from harm step
+  #     message: This will eventually be replaced by the real deal
+
+  # - uses: printer:print
+  #   with:
+  #     template: badge
+  #     # For every item in the values array a new print job will be created with
+  #     # those values passed to it.
+  #     values: ${{ session.subjects }}
+
+  - uses: base:markConfirmedCheckedIn
+    required: true
+
+  - uses: base:message
     with:
-      template: badge
-      # For every item in the values array a new print job will be created with
-      # those values passed to it.
-      values: ${{ session.subjects }}
+      title: Incheckning lyckades
+      message: Välkommen!
+      buttonText:
+        sv: Slutför
+        en: Finish

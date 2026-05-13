@@ -22,3 +22,11 @@ steps:
       force: resume
 
   - uses: base:selectSubjects
+
+  - uses: base:markPreliminaryCheckedIn
+    required: true
+
+  - uses: base:message
+    with:
+      title: Tack!
+      message: Nu är du klar för tillfället. Glöm inte slutföra incheckningen när ni väl är på lägerområdet!
