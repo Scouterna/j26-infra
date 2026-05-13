@@ -9,6 +9,6 @@ data:
   J26_PUBLIC_BOTTOM_NAV_ITEMS: page_info,page_all_activities,page_map,page_more
   J26_PUBLIC_ADDITIONAL_ROOT_PATHS: /notifs
   J26_PUBLIC_NOTIFICATIONS_TENANT: jamboree26
-  J26_PUBLIC_DEV_BANNER_MESSAGE: "Det här är en utvecklingsversion av appen. Vissa funktioner kanske inte fungerar som de ska."
+  # J26_PUBLIC_DEV_BANNER_MESSAGE: "Det här är en utvecklingsversion av appen. Vissa funktioner kanske inte fungerar som de ska."
   J26_PUBLIC_PAYLOAD_API_URL: https://app.dev.j26.se/_services/cms/api
   J26_PUBLIC_PAYLOAD_LOCALES: sv,en
