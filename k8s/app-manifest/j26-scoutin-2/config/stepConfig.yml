@@ -67,8 +67,8 @@ steps:
 
   - uses: base:message
     with:
-      title: Incheckning lyckades
-      message: Välkommen!
+      title: Incheckning lyckades!
+      message: Tänk på att inte slå upp ditt tält, hängmatta eller husbil/vagn nära elpunkterna, då dessa är reserverade för de medicinska behov.
       buttonText:
         sv: Slutför
         en: Finish
