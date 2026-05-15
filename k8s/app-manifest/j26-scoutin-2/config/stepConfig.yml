@@ -19,8 +19,8 @@ steps:
       }}
     uses: base:block
     with:
-      title: "Du kan inte checka in"
-      message: "Endast ledare kan checka in deltagare."
+      title: "Personen får inte checka in"
+      message: "Personen är '${{ steps.identify.outputs.participant.subGroup }}' och kan inte checka in deltagare. Endast ledare kan checka in deltagare."
 
   # deduplicateSession will ensure that there is only one session active for the
   # actor. If there are any other sessions the user is prompted to "Pick up
@@ -29,12 +29,12 @@ steps:
   # the current flow is aborted and the old session is resumed.
   - uses: base:deduplicateSession
     with:
-      force: ${{ steps.identify.outputs.dataSource == 'stormote6_ordinary' && 'new' || null }}
+      force: ${{ startsWith(steps.identify.outputs.dataSource, 'stormote6_') && 'new' || null }}
 
   - if: |
       ${{
         steps.identify.outputs.dataSource == 'staff' ||
-        steps.identify.outputs.dataSource == 'stormote6_ordinary'
+        startsWith(steps.identify.outputs.dataSource, 'stormote6_')
       }}
     # setActorAsSubject sets the session.subjects to the actorId from the session.
     uses: base:setActorAsSubject
@@ -65,10 +65,19 @@ steps:
   - uses: base:markConfirmedCheckedIn
     required: true
 
+  - uses: scoutnet:checkLeaderRequirements
+
   - uses: base:message
+    if: ${{ steps.identify.outputs.dataSource == 'groups' }}
+    id: groupInfo
     with:
-      title: Incheckning lyckades!
-      message: Tänk på att inte slå upp ditt tält, hängmatta eller husbil/vagn nära elpunkterna, då dessa är reserverade för de medicinska behov.
+      title: Kårinfo
+      message: Kåren bor i by 5, stadsdel Östersjön
+
+  - uses: base:message
+    id: successMessage
+    with:
+      title: Incheckning lyckades
       buttonText:
         sv: Slutför
         en: Finish
