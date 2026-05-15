@@ -86,7 +86,7 @@ dataSources:
           sv: Ledare
           en: Leader
     # activeFrom: 2026-05-13T17:36:00+02:00
-    activeTo: 2026-05-15T18:00:00+02:00
+    activeTo: 2026-05-15T17:00:00+02:00
     providerOptions:
       spreadsheetId: 1RWd-jRfRncwTCWYhY6KjuLys4rwFljE3yHy2YJasV3U
       sheetName: People
@@ -98,7 +98,7 @@ dataSources:
       en: staff (IST)
     provider: googlesheets
     # activeFrom: 2026-05-13T17:36:00+02:00
-    activeTo: 2026-05-15T18:00:00+02:00
+    activeTo: 2026-05-15T17:00:00+02:00
     providerOptions:
       spreadsheetId: 1QqBgbGHNrTtoLQBhzUipPEnMmXEOmDQ1X5tUWDSfugU
       sheetName: People
