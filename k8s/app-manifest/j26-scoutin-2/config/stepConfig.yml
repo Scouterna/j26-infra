@@ -65,7 +65,7 @@ steps:
   - uses: base:markConfirmedCheckedIn
     required: true
 
-  - uses: scoutnet:checkLeaderRequirements
+  # - uses: scoutnet:checkLeaderRequirements
 
   - uses: base:message
     if: ${{ steps.identify.outputs.dataSource == 'groups' }}
