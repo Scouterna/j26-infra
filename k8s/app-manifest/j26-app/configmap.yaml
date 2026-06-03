@@ -12,5 +12,5 @@ data:
   # J26_PUBLIC_DEV_BANNER_MESSAGE: "Det här är en utvecklingsversion av appen. Vissa funktioner kanske inte fungerar som de ska."
   J26_PUBLIC_PAYLOAD_API_URL: https://app.dev.j26.se/_services/cms/api
   J26_PUBLIC_PAYLOAD_LOCALES: sv,en
-  VITE_FIREBASE_CONFIG: {"apiKey":"AIzaSyBntIHTjKFwIxxawIQpO2S1OdCpCCiprgU","authDomain":"j26-messaging.firebaseapp.com","projectId":"j26-messaging","storageBucket":"j26-messaging.firebasestorage.app","messagingSenderId":"1042069463391","appId":"1:1042069463391:web:af7ea77fb3ace51d69d6ea"}
+  VITE_FIREBASE_CONFIG: '{"apiKey":"AIzaSyBntIHTjKFwIxxawIQpO2S1OdCpCCiprgU","authDomain":"j26-messaging.firebaseapp.com","projectId":"j26-messaging","storageBucket":"j26-messaging.firebasestorage.app","messagingSenderId":"1042069463391","appId":"1:1042069463391:web:af7ea77fb3ace51d69d6ea"}'
   VITE_FIREBASE_VAPID_KEY: BCFWJ8Ei-JNnLrBnvy6QaVnA_67pzIbTM2vSAtmhvbzGa7iPL-SgCKluXX5gy2yXNV3eCvRdBaaoKMGbdpdFSo4
