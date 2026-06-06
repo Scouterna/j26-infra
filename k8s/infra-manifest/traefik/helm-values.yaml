@@ -1,0 +1,81 @@
+deployment:
+  replicas: 1
+
+providers:
+  kubernetesCRD:
+    enabled: true
+    allowCrossNamespace: true
+  kubernetesIngress:
+    enabled: true
+    ingressClass: traefik
+  kubernetesGateway:
+    enabled: true
+
+ingressClass:
+  enabled: true
+  isDefaultClass: false
+  name: traefik
+
+gatewayClass:
+  enabled: true
+  name: traefik
+
+# Redirect HTTP → HTTPS globally
+ports:
+  web:
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+
+service:
+  type: LoadBalancer
+  # No annotation needed — AKS auto-assigns a static IP in its node resource group
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 100Mi
+  limits:
+    memory: 256Mi
+
+ingressRoute:
+  dashboard:
+    enabled: false
+
+logs:
+  general:
+    level: WARN
+  access:
+    enabled: true
+
+extraObjects:
+  - apiVersion: cert-manager.io/v1
+    kind: ClusterIssuer
+    metadata:
+      name: letsencrypt-traefik
+    spec:
+      acme:
+        server: https://acme-v02.api.letsencrypt.org/directory
+        email: hakan.persson@scouterna.se
+        privateKeySecretRef:
+          name: letsencrypt-traefik
+        solvers:
+          - http01:
+              ingress:
+                ingressClassName: traefik
+  - apiVersion: cert-manager.io/v1
+    kind: ClusterIssuer
+    metadata:
+      name: letsencrypt-traefik-staging
+    spec:
+      acme:
+        server: https://acme-staging-v02.api.letsencrypt.org/directory
+        email: hakan.persson@scouterna.se
+        privateKeySecretRef:
+          name: letsencrypt-traefik-staging
+        solvers:
+          - http01:
+              ingress:
+                ingressClassName: traefik
