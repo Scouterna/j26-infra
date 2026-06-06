@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: notification-client
+  labels:
+    app: notification-client
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: http
+    nginx.ingress.kubernetes.io/rewrite-target: /_services/notification-client/$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: app.dev.j26.se
+      http:
+        paths:
+          - path: /_services/notification-client(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: notification-client
+                port:
+                  number: 80

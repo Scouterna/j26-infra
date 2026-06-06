@@ -72,3 +72,21 @@ spec:
           imageName: "ghcr.io/scouterna/j26-scoutin-2"
           commonUpdateSettings:
             updateStrategy: "newest-build"
+
+    - namePattern: "j26-notifications"
+      images:
+        - alias: "api"
+          imageName: "ghcr.io/scouterna/j26-notifications"
+          commonUpdateSettings:
+            updateStrategy: "newest-build"
+        - alias: "client"
+          imageName: "ghcr.io/scouterna/j26-notifications-client"
+          commonUpdateSettings:
+            updateStrategy: "newest-build"
+
+    - namePattern: "j26-photo-permission"
+      images:
+        - alias: "app"
+          imageName: "ghcr.io/scouterna/j26-photo-permission"
+          commonUpdateSettings:
+            updateStrategy: "newest-build"

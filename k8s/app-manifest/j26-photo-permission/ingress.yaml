@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: photo-permission
+  labels:
+    app: photo-permission
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: http
+    nginx.ingress.kubernetes.io/rewrite-target: /_services/photo-permission/$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: app.dev.j26.se
+      http:
+        paths:
+          - path: /_services/photo-permission(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: photo-permission
+                port:
+                  number: 80

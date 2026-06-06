@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: photo-permission
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: photo-permission
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: photo-permission
+    spec:
+      containers:
+        - name: photo-permission
+          image: ghcr.io/scouterna/j26-photo-permission:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          env:
+            - name: J26_SERVICE_BASE_PATH
+              value: /_services/photo-permission
+            - name: J26_SIGNUPINFO_PROXY_PREFIX
+              value: /_services/signupinfo
+          resources:
+            requests:
+              cpu: 50m
+            limits:
+              cpu: 300m
+              memory: 128Mi
+      terminationGracePeriodSeconds: 30

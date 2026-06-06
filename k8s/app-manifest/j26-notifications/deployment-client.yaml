@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-client
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: notification-client
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: notification-client
+    spec:
+      containers:
+        - name: notification-client
+          image: ghcr.io/scouterna/j26-notifications-client:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          env:
+            - name: J26_SERVICE_BASE_PATH
+              value: /_services/notification-client
+            - name: J26_NOTIFICATIONS_PROXY_PREFIX
+              value: /notifications
+          resources:
+            requests:
+              cpu: 50m
+            limits:
+              cpu: 300m
+              memory: 128Mi
+      terminationGracePeriodSeconds: 30

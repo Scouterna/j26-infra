@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: j26-notification-client-runtime-config
+data:
+  config.json: |
+    {
+      "defaultTenant": "jamboree26",
+      "platformBaseUrl": "https://app.dev.j26.se",
+      "messagingApiPrefix": "/notifications/api",
+      "notificationPollIntervalMs": 30000,
+      "notificationLimit": 10,
+      "firebase": {
+        "apiKey": "AIzaSyBntIHTjKFwIxxawIQpO2S1OdCpCCiprgU",
+        "authDomain": "j26-messaging.firebaseapp.com",
+        "projectId": "j26-messaging",
+        "storageBucket": "j26-messaging.firebasestorage.app",
+        "messagingSenderId": "1042069463391",
+        "appId": "1:1042069463391:web:af7ea77fb3ace51d69d6ea"
+      },
+      "firebaseVapidKey": "BCFWJ8Ei-JNnLrBnvy6QaVnA_67pzIbTM2vSAtmhvbzGa7iPL-SgCKluXX5gy2yXNV3eCvRdBaaoKMGbdpdFSo4"
+    }
