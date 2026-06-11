@@ -7,14 +7,14 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/backend-protocol: http
     nginx.ingress.kubernetes.io/rewrite-target: /$2
-    nginx.ingress.kubernetes.io/x-forwarded-prefix: /notifications
+    nginx.ingress.kubernetes.io/x-forwarded-prefix: /_services/notifications
 spec:
   ingressClassName: nginx
   rules:
     - host: app.dev.j26.se
       http:
         paths:
-          - path: /notifications(/|$)(.*)
+          - path: /_services/notifications(/|$)(.*)
             pathType: ImplementationSpecific
             backend:
               service:
