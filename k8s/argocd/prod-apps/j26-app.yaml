@@ -1,0 +1,28 @@
+# Production Application for j26-app (the user-facing root).
+#
+# Name is `j26-app-prod` (NOT `j26-app`) on purpose: the argocd-image-updater
+# `namePattern: "j26-app"` is an exact-match glob, so the `-prod` suffix keeps
+# this Application out of the image updater. Prod image tags are pinned here via
+# the overlay's kustomize `images:` field and bumped by an explicit Git commit.
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: j26-app-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: prod
+  source:
+    repoURL: https://github.com/Scouterna/j26-infra.git
+    targetRevision: main
+    path: k8s/app-manifest-prod/j26-app
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: j26-prod
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
