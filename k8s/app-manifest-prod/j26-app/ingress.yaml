@@ -1,0 +1,29 @@
+# Production ingress for j26-app — Traefik instead of nginx.
+#
+# Strategic-merge patch over the base Ingress. The full `rules` block is
+# restated because strategic-merge treats Ingress `rules` as an atomic list
+# (it replaces, not element-merges). The nginx-specific annotations from the
+# base are dropped; Traefik ignores them. Root path `/`, no middleware needed.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: j26-app
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-traefik
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - app.jamboree.se
+      secretName: j26-app-tls-secret
+  rules:
+    - host: app.jamboree.se
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: j26-app
+                port:
+                  number: 80

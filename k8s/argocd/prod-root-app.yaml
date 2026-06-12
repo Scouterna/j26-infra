@@ -1,0 +1,31 @@
+# App-of-apps root for the PRODUCTION environment.
+# Mirrors infra-root-app.yaml: recurses k8s/argocd/prod-apps/ and adopts every
+# prod Application defined there. Bootstrap once with `kubectl apply` (see
+# k8s/argocd/argocd-apps.md), after which new prod apps are picked up from Git.
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prod-root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: infra
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+
+  source:
+    repoURL: https://github.com/Scouterna/j26-infra.git
+    targetRevision: main
+    path: k8s/argocd/prod-apps
+    directory:
+      recurse: true
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false

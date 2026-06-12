@@ -1,0 +1,21 @@
+# The prod project contains the production deployments of Jamboree26 apps.
+# Unlike the `apps` project (dev, destination namespace '*'), prod is restricted
+# to the single shared `j26-prod` namespace for a tighter blast radius.
+
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  sourceRepos:
+    - 'https://github.com/Scouterna/j26-infra.git'
+  destinations:
+    - namespace: j26-prod
+      server: https://kubernetes.default.svc
+  # Deny all cluster-scoped resources from being created, except for Namespace
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
