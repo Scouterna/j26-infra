@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - configmap-api.yaml
+  - secret-provider-class.yaml
   - deployment-api.yaml
   - deployment-client.yaml
   - service-api.yaml
