@@ -1,0 +1,5 @@
+# Force everyone to open a PR for production changes
+k8s/app-manifest-prod @Scouterna/j26-infra
+k8s/argocd/prod-apps @Scouterna/j26-infra
+k8s/argocd/prod-root-app.yaml @Scouterna/j26-infra
+k8s/argocd/projects/prod.yaml @Scouterna/j26-infra
