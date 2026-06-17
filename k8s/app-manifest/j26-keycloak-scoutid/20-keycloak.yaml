@@ -52,11 +52,7 @@ spec:
               done
       containers:
         - name: keycloak
-          # Upstream "official" image (no longer built in this repo). No versioned
-          # release exists yet, so dev tracks :latest. imagePullPolicy: Always so a
-          # `kubectl rollout restart` picks up the latest upstream push.
-          image: ghcr.io/scouterna/scoutid-keycloak:latest
-          imagePullPolicy: Always
+          image: ghcr.io/scouterna/scoutid-keycloak:sha-b08ab09
           args: ["start", "--optimized"]
           env:
             # --- Database (external Azure Postgres, kv-j26apps-shared-sdc) ---
@@ -99,15 +95,10 @@ spec:
               value: "true"
             - name: KC_METRICS_ENABLED
               value: "true"
-            # Per-user-event metrics (keycloak_logins / failed_login_attempts /
-            # registrations) need the `user-event-metrics` feature baked in at build
-            # time — NOT yet in the upstream :latest image (PR prepared upstream on
-            # scoutid-keycloak branch fix/user-event-metrics, not merged yet).
-            # Deliberately NOT setting KC_EVENT_METRICS_USER_ENABLED/_TAGS here: under
-            # `start --optimized`, setting a build-time-only option at runtime when it
-            # doesn't match what's persisted in the build is FATAL (not just a warning
-            # — confirmed: it crash-loops with exit code 2). Re-add these once the
-            # upstream fix lands and the image is rebuilt with the feature.
+            - name: KC_EVENT_METRICS_USER_ENABLED
+              value: "true"
+            - name: KC_EVENT_METRICS_USER_TAGS
+              value: realm,idp,clientId
             # --- Bootstrap admin ---
             - name: KC_BOOTSTRAP_ADMIN_USERNAME
               valueFrom:
