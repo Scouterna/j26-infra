@@ -49,11 +49,25 @@ spec:
               value: "300s"
             - name: IMPORT_FILES_LOCATIONS
               value: /config/*
+            - name: J26_NOTIFICATIONS_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-client-secrets-csi
+                  key: J26_NOTIFICATIONS_CLIENT_SECRET
           volumeMounts:
             - name: config
               mountPath: /config
+              readOnly: true
+            - name: client-secrets
+              mountPath: /mnt/client-secrets
               readOnly: true
       volumes:
         - name: config
           configMap:
             name: keycloak-config
+        - name: client-secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: j26-keycloak-scoutid-kv-csi
