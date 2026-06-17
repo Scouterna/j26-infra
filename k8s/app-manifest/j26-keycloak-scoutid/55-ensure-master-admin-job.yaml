@@ -1,0 +1,106 @@
+# Ensures a permanent, non-bootstrap master-realm admin user exists.
+#
+# Replaces ensure-master-admin.sh (deleted). Uses the Keycloak image's own kcadm.sh
+# CLI so no extra tooling is needed. Idempotent: skips silently if the user already
+# exists.
+#
+# ArgoCD lifecycle:
+#   hook: PostSync — runs after ALL other resources are synced and healthy, so
+#     keycloak-admin-csi is guaranteed to be materialized by the Deployment pod.
+#   hook-delete-policy: BeforeHookCreation — old Job is deleted before each new run,
+#     so every sync gets a clean execution.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ensure-master-admin
+  namespace: j26-keycloak-scoutid
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app: ensure-master-admin
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: ensure-master-admin
+          image: quay.io/keycloak/keycloak:26.5.6
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -euo pipefail
+              KC_URL="http://keycloak:8080"
+
+              echo "Authenticating as bootstrap admin..."
+              /opt/keycloak/bin/kcadm.sh config credentials \
+                --server "$KC_URL" \
+                --realm master \
+                --user "$KC_BOOTSTRAP_ADMIN_USERNAME" \
+                --password "$KC_BOOTSTRAP_ADMIN_PASSWORD"
+
+              echo "Checking if '$MASTER_ADMIN_USERNAME' already exists..."
+              # kcadm get returns "[ ]" for no match, or "[{...\"id\"...}]" for a hit.
+              # grep -q checks without printing; no python/jq needed (not in this image).
+              RESULT=$(/opt/keycloak/bin/kcadm.sh get users \
+                -r master \
+                -q username="$MASTER_ADMIN_USERNAME" \
+                --fields id)
+
+              if echo "$RESULT" | grep -q '"id"'; then
+                echo "Admin user '$MASTER_ADMIN_USERNAME' already exists — skipping."
+                exit 0
+              fi
+
+              echo "Creating permanent admin user '$MASTER_ADMIN_USERNAME'..."
+              /opt/keycloak/bin/kcadm.sh create users -r master \
+                -s username="$MASTER_ADMIN_USERNAME" \
+                -s enabled=true
+
+              /opt/keycloak/bin/kcadm.sh set-password -r master \
+                --username "$MASTER_ADMIN_USERNAME" \
+                --new-password "$MASTER_ADMIN_PASSWORD"
+
+              /opt/keycloak/bin/kcadm.sh add-roles -r master \
+                --uusername "$MASTER_ADMIN_USERNAME" \
+                --rolename admin
+
+              echo "Done — '$MASTER_ADMIN_USERNAME' created with master-realm admin role."
+          env:
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin-csi
+                  key: KC_BOOTSTRAP_ADMIN_USERNAME
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin-csi
+                  key: KC_BOOTSTRAP_ADMIN_PASSWORD
+            - name: MASTER_ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin-csi
+                  key: MASTER_ADMIN_USERNAME
+            - name: MASTER_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin-csi
+                  key: MASTER_ADMIN_PASSWORD
+          volumeMounts:
+            # Mounting the CSI volume is what materializes keycloak-admin-csi.
+            # Belt-and-suspenders: Deployment pod already does this, but having
+            # the Job do it too ensures correctness if job runs before KC pod is Ready.
+            - name: secrets-store
+              mountPath: /mnt/secrets-store
+              readOnly: true
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: j26-keycloak-scoutid-kv-csi

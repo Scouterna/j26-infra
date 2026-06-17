@@ -1,0 +1,161 @@
+# NOTE: keycloak-db-csi and keycloak-admin-csi are materialized by the CSI driver
+# from k8s/15-secret-provider-class.yaml (sourced from Azure Key Vault
+# kv-j26apps-shared-sdc) — no local secret files involved anymore.
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: j26-keycloak-scoutid
+  labels:
+    app: keycloak
+spec:
+  selector:
+    app: keycloak
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+    # Keycloak management port: /health/* and the Prometheus /metrics endpoint.
+    # Scraped by the keycloak ServiceMonitor.
+    - name: management
+      port: 9000
+      targetPort: 9000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: j26-keycloak-scoutid
+  labels:
+    app: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: docker.io/library/busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z psql-j26apps-shared-sdc.postgres.database.azure.com 5432; do
+                echo "waiting for postgres..."; sleep 3;
+              done
+      containers:
+        - name: keycloak
+          # Upstream "official" image (no longer built in this repo). No versioned
+          # release exists yet, so dev tracks :latest. imagePullPolicy: Always so a
+          # `kubectl rollout restart` picks up the latest upstream push.
+          image: ghcr.io/scouterna/scoutid-keycloak:latest
+          imagePullPolicy: Always
+          args: ["start", "--optimized"]
+          env:
+            # --- Database (external Azure Postgres, kv-j26apps-shared-sdc) ---
+            - name: KC_DB
+              value: postgres
+            - name: KC_DB_URL
+              value: jdbc:postgresql://psql-j26apps-shared-sdc.postgres.database.azure.com:5432/j26_dev_scoutid?sslmode=require
+            - name: KC_DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-db-csi
+                  key: KC_DB_USERNAME
+            # NOTE: Keycloak docs (https://www.keycloak.org/server/db) document a
+            # KCRAW_DB_PASSWORD prefix to preserve literal $/${...} characters in the
+            # password. Tried it here — this image's Keycloak 26.5.6 does NOT honor
+            # KCRAW_DB_PASSWORD at all (confirmed via `kc.sh show-config`: kc.db-password
+            # never appears), while plain KC_DB_PASSWORD works correctly. The actual DB
+            # password (kv-j26apps-shared-sdc/j26-dev-scoutid-postgres-password) is
+            # plain alphanumeric with no $ anyway, so this is moot here — but don't
+            # assume KCRAW_ works on this image/version if a future password needs it.
+            - name: KC_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-db-csi
+                  key: KC_DB_PASSWORD
+            # --- Hostname / proxy (TLS terminated at the Traefik ingress) ---
+            # Public (member-facing) hostname. Keycloak refuses to serve the admin
+            # console here; only /realms/*, /resources/* etc. are reachable.
+            - name: KC_HOSTNAME
+              value: https://id.dev.j26.se
+            # Separate admin hostname. The admin console + /admin/* are served only
+            # under this host, which the Traefik IngressRoute can IP-gate.
+            - name: KC_HOSTNAME_ADMIN
+              value: https://admin.id.dev.j26.se
+            - name: KC_HTTP_ENABLED
+              value: "true"
+            - name: KC_PROXY_HEADERS
+              value: xforwarded
+            - name: KC_HEALTH_ENABLED
+              value: "true"
+            - name: KC_METRICS_ENABLED
+              value: "true"
+            # Per-user-event metrics (keycloak_logins / failed_login_attempts /
+            # registrations) need the `user-event-metrics` feature baked in at build
+            # time — NOT yet in the upstream :latest image (PR prepared upstream on
+            # scoutid-keycloak branch fix/user-event-metrics, not merged yet).
+            # Deliberately NOT setting KC_EVENT_METRICS_USER_ENABLED/_TAGS here: under
+            # `start --optimized`, setting a build-time-only option at runtime when it
+            # doesn't match what's persisted in the build is FATAL (not just a warning
+            # — confirmed: it crash-loops with exit code 2). Re-add these once the
+            # upstream fix lands and the image is rebuilt with the feature.
+            # --- Bootstrap admin ---
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin-csi
+                  key: KC_BOOTSTRAP_ADMIN_USERNAME
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin-csi
+                  key: KC_BOOTSTRAP_ADMIN_PASSWORD
+            # --- Scoutnet API base (the provider reads this env var) ---
+            - name: SCOUTNET_BASE_URL
+              value: https://scoutnet.se
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: management
+              containerPort: 9000
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 9000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 9000
+            initialDelaySeconds: 60
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 250m
+              memory: 768Mi
+            limits:
+              memory: 1280Mi
+          volumeMounts:
+            # Mounting this is what triggers the CSI driver to materialize
+            # keycloak-db-csi / keycloak-admin-csi (see k8s/15-secret-provider-class.yaml).
+            - name: secrets-store
+              mountPath: /mnt/secrets-store
+              readOnly: true
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: j26-keycloak-scoutid-kv-csi

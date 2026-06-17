@@ -1,0 +1,124 @@
+# Traefik IngressRoutes for the J26 ScoutID Keycloak.
+#
+# This is the first Traefik-native workload on the J26 cluster and is meant to be
+# the reference pattern for future installs (Traefik is now the default ingress).
+#
+# Split-hostname design (mirrors scoutid-keycloak-infra's publicDomainName /
+# adminDomainName Front Door split, and the homelab T.24.7.4 admin-ingress):
+#   - id.dev.j26.se        — public, member-facing login. Keycloak (via KC_HOSTNAME)
+#                            does NOT serve the admin console here.
+#   - admin.id.dev.j26.se  — admin console + /admin/* (via KC_HOSTNAME_ADMIN).
+#                            IP-gate this with the ipAllowList middleware below.
+#
+# TLS: cert-manager mints the certs (HTTP-01 via the letsencrypt-traefik
+# ClusterIssuer, production ACME) into the named Secrets, which the IngressRoutes
+# reference. Traefik serves them on the `websecure` (:443) entrypoint.
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: id-dev-j26-se-tls
+  namespace: j26-keycloak-scoutid
+spec:
+  secretName: id-dev-j26-se-tls
+  issuerRef:
+    name: letsencrypt-traefik
+    kind: ClusterIssuer
+  dnsNames:
+    - id.dev.j26.se
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: admin-id-dev-j26-se-tls
+  namespace: j26-keycloak-scoutid
+spec:
+  secretName: admin-id-dev-j26-se-tls
+  issuerRef:
+    name: letsencrypt-traefik
+    kind: ClusterIssuer
+  dnsNames:
+    - admin.id.dev.j26.se
+---
+# IP allow-list for the admin host. NOT attached yet (deploying admin open for now
+# per decision) — to enable, add it to the admin IngressRoute's `middlewares:` list
+# and fill in sourceRange with the trusted CIDR(s), e.g. office/VPN egress IP.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: admin-ip-allowlist
+  namespace: j26-keycloak-scoutid
+spec:
+  ipAllowList:
+    sourceRange:
+      - 0.0.0.0/0          # TODO: replace with trusted admin CIDR(s) before relying on this
+---
+# Redirect / → Scouterna's ScoutID info page. Mirrors what the official
+# id.scoutid.se deployment does. Traefik returns the 301 before the request
+# ever reaches Keycloak (the backend service listed in the route is never called).
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-root-to-scouterna
+  namespace: j26-keycloak-scoutid
+spec:
+  redirectRegex:
+    regex: "^https://id\\.dev\\.j26\\.se/?$"
+    replacement: "https://www.scouterna.se/scout-ledare-kar/leda-kar/etjanster/scoutid/"
+    permanent: true
+---
+# Public IngressRoute — member login. Restricted to /realms/* and /resources/* at the
+# ingress layer (matches the official id.scoutid.se deployment's guidance: the public
+# domain should only ever reach those two prefixes). Anything else on this host has no
+# matching route and Traefik 404s it — stricter than IP-filtering and needs no extra
+# middleware. This is on top of, not instead of, Keycloak's own KC_HOSTNAME-based
+# admin-console withholding.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: keycloak-public
+  namespace: j26-keycloak-scoutid
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`id.dev.j26.se`) && Path(`/`)
+      middlewares:
+        - name: redirect-root-to-scouterna
+      services:
+        - name: keycloak
+          port: 8080
+    - kind: Rule
+      match: Host(`id.dev.j26.se`) && PathPrefix(`/realms`)
+      services:
+        - name: keycloak
+          port: 8080
+    - kind: Rule
+      match: Host(`id.dev.j26.se`) && PathPrefix(`/resources`)
+      services:
+        - name: keycloak
+          port: 8080
+  tls:
+    secretName: id-dev-j26-se-tls
+---
+# Admin IngressRoute — admin console (KC_HOSTNAME_ADMIN host). To IP-gate, add
+# `admin-ip-allowlist` under middlewares (and set its sourceRange above).
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: keycloak-admin
+  namespace: j26-keycloak-scoutid
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`admin.id.dev.j26.se`)
+      # middlewares:
+      #   - name: admin-ip-allowlist
+      services:
+        - name: keycloak
+          port: 8080
+  tls:
+    secretName: admin-id-dev-j26-se-tls

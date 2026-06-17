@@ -1,0 +1,59 @@
+# keycloak-config-cli Job. Applies the realm/auth/scope/client config from the
+# keycloak-config ConfigMap (k8s/45-keycloak-config-configmap.yaml).
+#
+# ArgoCD lifecycle:
+#   hook: Sync — re-runs on every ArgoCD sync (picks up config changes).
+#     Without this annotation ArgoCD treats a completed Job as desired-state and
+#     never re-runs it.
+#   hook-delete-policy: BeforeHookCreation — deletes the old Job before each run,
+#     same as the manual `kubectl delete job … --ignore-not-found` in apply.sh.
+#
+# No explicit wait needed: KEYCLOAK_AVAILABILITYCHECK_ENABLED polls until Keycloak
+# answers (up to 300s), so apply order between Deployment and this Job doesn't matter.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: keycloak-config
+  namespace: j26-keycloak-scoutid
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 10
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app: keycloak-config
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: keycloak-config-cli
+          image: docker.io/adorsys/keycloak-config-cli:latest-26
+          env:
+            - name: KEYCLOAK_URL
+              value: http://keycloak:8080
+            - name: KEYCLOAK_USER
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin-csi
+                  key: KC_BOOTSTRAP_ADMIN_USERNAME
+            - name: KEYCLOAK_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin-csi
+                  key: KC_BOOTSTRAP_ADMIN_PASSWORD
+            - name: KEYCLOAK_AVAILABILITYCHECK_ENABLED
+              value: "true"
+            - name: KEYCLOAK_AVAILABILITYCHECK_TIMEOUT
+              value: "300s"
+            - name: IMPORT_FILES_LOCATIONS
+              value: /config/*
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: keycloak-config
