@@ -3,7 +3,9 @@ kind: ConfigMap
 metadata:
   name: j26-scoutid-sync-config
 data:
+  KEYCLOAK_BASE_URL: https://admin.id.dev.j26.se
+  KEYCLOAK_REALM_NAME: jamboree26
   KEYCLOAK_CLIENT_ID: j26-group-import
-  KEYCLOAK_PARENT_GROUP_ID: 9a9dbe39-e57f-4510-ae54-6d3b62aa14f3
+  KEYCLOAK_PARENT_GROUP_ID: c89151a0-078e-4922-b6f3-8526e301a3e2
   SCOUTNET_PROJECT_ID: "52716"
   SCOUTNET_FORM_ID: "43853"
