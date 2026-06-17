@@ -20,7 +20,7 @@ configured for Scoutnet login.
                     ┌───────────────▼─────────────────┐
                     │  Keycloak pod (Deployment)       │
                     │  ghcr.io/scouterna/              │
-                    │    scoutid-keycloak:latest       │
+                    │    scoutid-keycloak              │
                     │  :8080  HTTP + realms            │
                     │  :9000  /health + /metrics       │
                     └──────┬──────────────┬───────────┘
@@ -99,7 +99,7 @@ sync and are cleaned up (`ttlSecondsAfterFinished: 600`) afterwards.
 The `jamboree26` realm is configured declaratively via
 [keycloak-config-cli](https://github.com/adorsys/keycloak-config-cli). The four
 source files live in
-[j26-keycloak-scoutid/keycloak-config/](https://github.com/Scouterna/j26-keycloak-scoutid/tree/main/keycloak-config):
+[j26-keycloak/keycloak-config/](https://github.com/Scouterna/j26-keycloak/tree/main/keycloak-config):
 
 | File | Content |
 |---|---|
