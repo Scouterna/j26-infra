@@ -1,0 +1,392 @@
+# Generated from keycloak-config/*.yaml via:
+#   kubectl create configmap keycloak-config --namespace j26-keycloak-scoutid \
+#     --from-file=keycloak-config --dry-run=client -o yaml > k8s/45-keycloak-config-configmap.yaml
+# Re-run that command when any keycloak-config/*.yaml file changes.
+apiVersion: v1
+data:
+  01-realm.yaml: |
+    # The jamboree26 realm holds all ScoutID/Scoutnet login config. The master realm
+    # is left stock (admin only) — see ensure-master-admin.sh. Mirrors the
+    # master/jamboree26 separation on dev.id.scouterna.se. Ported from the full
+    # upstream provider's own example config (scoutid-keycloak-provider/keycloak-config/,
+    # which targets its local `master` realm) — renamed to jamboree26 and merged with
+    # J26-specific settings (internationalization, login behavior) below.
+    realm: jamboree26
+    enabled: true
+
+    # Token and session lifetimes
+    accessTokenLifespan: 300          # 5 minutes
+    ssoSessionIdleTimeout: 2592000    # 30 days
+    ssoSessionMaxLifespan: 2592000    # 30 days
+
+    # Shared ScoutID login theme (upstream scoutid-keycloak-theme, baked into the
+    # upstream image — no longer vendored/rebranded in this repo).
+    loginTheme: scoutid
+
+    # Internationalization — the login theme ships en + sv. Swedish is the primary
+    # audience; English is available via ?ui_locales=en or an Accept-Language: en
+    # browser. Without this block Keycloak only serves the default locale and ignores
+    # ui_locales/Accept-Language (also reported upstream — see scoutid-keycloak-provider
+    # branch fix/realm-example-i18n).
+    internationalizationEnabled: true
+    supportedLocales:
+      - sv
+      - en
+    defaultLocale: sv
+
+    # Login settings — kept as J26's deliberate choices (the upstream master-realm
+    # example instead has loginWithEmailAllowed: false / rememberMe: true).
+    registrationAllowed: false
+    resetPasswordAllowed: false
+    rememberMe: false
+    loginWithEmailAllowed: true
+    registrationEmailAsUsername: false
+    duplicateEmailsAllowed: true
+    verifyEmail: false
+    editUsernameAllowed: false
+
+    attributes:
+      userProfileEnabled: "true"
+
+    userProfile:
+      groups:
+        - name: basic
+          displayHeader: Grunduppgifter
+        - name: contact
+          displayHeader: Kontaktuppgifter
+        - name: scout
+          displayHeader: Scoutuppgifter
+
+      attributes:
+        - name: username
+          displayName: ${username}
+          group: basic
+          validations:
+            length:
+              min: 3
+              max: 255
+            username-prohibited-characters: {}
+            up-username-not-idn-homograph: {}
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: email
+          displayName: ${email}
+          group: basic
+          validations:
+            email: {}
+            length:
+              max: 255
+          required:
+            roles: [user]
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: firstName
+          displayName: ${firstName}
+          group: basic
+          validations:
+            length:
+              max: 255
+            person-name-prohibited-characters: {}
+          required:
+            roles: [user]
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: lastName
+          displayName: ${lastName}
+          group: basic
+          validations:
+            length:
+              max: 255
+            person-name-prohibited-characters: {}
+          required:
+            roles: [user]
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: birthdate
+          displayName: Födelsedatum
+          group: basic
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: locale
+          displayName: Språk
+          group: basic
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: scouterna_email
+          displayName: Scouterna e-post
+          group: contact
+          validations:
+            email: {}
+            length:
+              max: 255
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: alt_email
+          displayName: Alternativ e-post
+          group: contact
+          validations:
+            email: {}
+            length:
+              max: 255
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: phone_number
+          displayName: Mobilnummer
+          group: contact
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: picture
+          displayName: Profilbild
+          group: basic
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: scoutnet_member_no
+          displayName: Medlemsnummer
+          group: scout
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: primary_group_name
+          displayName: Primär scoutkår
+          group: scout
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: primary_group_no
+          displayName: Primär scoutkår - ID
+          group: scout
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: memberships
+          displayName: Medlemskap och roller
+          group: scout
+          annotations:
+            inputType: textarea
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: group_emails_json
+          displayName: Kåre-postadresser
+          group: scout
+          annotations:
+            inputType: textarea
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: firstlast
+          displayName: first.last
+          permissions:
+            view: [admin]
+            edit: [admin]
+  02-authentication.yaml: |
+    # Two-execution ALTERNATIVE flow from the full upstream provider (replaces the old
+    # minimal-provider's single REQUIRED scoutnet-authenticator execution): a cookie
+    # re-authenticator first, falling back to the interactive Scoutnet authenticator.
+    realm: jamboree26
+
+    authenticationFlows:
+      - alias: "ScoutID browser login"
+        description: "ScoutID browser login flow"
+        providerId: basic-flow
+        topLevel: true
+        builtIn: false
+        authenticationExecutions:
+          - authenticatorFlow: false
+            authenticator: scoutnet-cookie-authenticator
+            requirement: ALTERNATIVE
+            priority: 10
+            authenticatorConfig: scoutid-cookie-config
+          - authenticatorFlow: false
+            authenticator: scoutnet-authenticator
+            requirement: ALTERNATIVE
+            priority: 20
+
+    authenticatorConfig:
+      - alias: scoutid-cookie-config
+        config:
+          scoutnet.fetch.interval.minutes: "60"
+
+    browserFlow: "ScoutID browser login"
+  03-scopes.yaml: |
+    realm: jamboree26
+
+    clientScopes:
+      # Extend the standard profile scope with scoutnet_member_no
+      - name: profile
+        protocol: openid-connect
+        protocolMappers:
+          - name: scoutnet_member_no
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: scoutnet_member_no
+              claim.name: scoutnet_member_no
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+
+      # Extend the standard email scope with scouterna_email and alt_email
+      - name: email
+        protocol: openid-connect
+        protocolMappers:
+          - name: scouterna_email
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: scouterna_email
+              claim.name: scouterna_email
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: alt_email
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: alt_email
+              claim.name: alt_email
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+
+      # Extend the standard phone scope with phone_number
+      - name: phone
+        protocol: openid-connect
+        protocolMappers:
+          - name: phone_number
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: phone_number
+              claim.name: phone_number
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+
+      # Custom scope for organisational membership data
+      - name: scoutnet-memberships
+        description: "Scout group memberships, roles, and organisational data"
+        protocol: openid-connect
+        attributes:
+          include.in.token.scope: "true"
+          display.on.consent.screen: "true"
+        protocolMappers:
+          - name: primary_group_name
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: primary_group_name
+              claim.name: primary_group_name
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: primary_group_no
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: primary_group_no
+              claim.name: primary_group_no
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: memberships
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: memberships
+              claim.name: memberships
+              jsonType.label: JSON
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: group_emails_json
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: group_emails_json
+              claim.name: group_emails_json
+              jsonType.label: JSON
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+  04-clients.yaml: |
+    realm: jamboree26
+
+    clients:
+      # Account console needs access to all scopes to show custom attributes
+      - clientId: account
+        defaultClientScopes:
+          - profile
+          - email
+          - phone
+          - scoutnet-memberships
+
+      # Keep the admin console on the built-in browser flow so admin login still works
+      - clientId: security-admin-console
+        authenticationFlowBindingOverrides:
+          browser: browser
+        attributes:
+          login_theme: keycloak.v2
+
+      - clientId: scout-test-client
+        name: Scout Test Client
+        description: "Development client for testing ScoutID login"
+        enabled: true
+        publicClient: true
+        standardFlowEnabled: true
+        directAccessGrantsEnabled: false
+        redirectUris:
+          - "http://localhost:*"
+          - "https://localhost:*"
+        webOrigins:
+          - "+"
+        consentRequired: true
+        defaultClientScopes:
+          - profile
+          - email
+          - phone
+          - scoutnet-memberships
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: keycloak-config
+  namespace: j26-keycloak-scoutid
