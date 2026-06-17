@@ -382,15 +382,6 @@ data:
           - basic
           - email
 
-    users:
-      - username: service-account-j26-notifications
-        enabled: true
-        serviceAccountClientId: j26-notifications
-        clientRoles:
-          realm-management:
-            - query-groups
-            - view-users
-
       - clientId: scout-test-client
         name: Scout Test Client
         description: "Development client for testing ScoutID login"
@@ -409,6 +400,15 @@ data:
           - email
           - phone
           - scoutnet-memberships
+
+    users:
+      - username: service-account-j26-notifications
+        enabled: true
+        serviceAccountClientId: j26-notifications
+        clientRoles:
+          realm-management:
+            - query-groups
+            - view-users
 kind: ConfigMap
 metadata:
   creationTimestamp: null
