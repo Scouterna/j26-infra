@@ -381,7 +381,12 @@ data:
           - roles
           - basic
           - email
-        serviceAccountClientRoles:
+
+    users:
+      - username: service-account-j26-notifications
+        enabled: true
+        serviceAccountClientId: j26-notifications
+        clientRoles:
           realm-management:
             - query-groups
             - view-users
