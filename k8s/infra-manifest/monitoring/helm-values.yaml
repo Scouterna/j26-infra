@@ -38,7 +38,7 @@ grafana:
 prometheus:
   prometheusSpec:
     retention: 90d
-    retentionSize: 56GB
+    retentionSize: 50GB
     storageSpec:
       volumeClaimTemplate:
         spec:
