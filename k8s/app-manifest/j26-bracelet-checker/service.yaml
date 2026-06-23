@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: j26-bracelet-checker
+spec:
+  selector:
+    app: j26-bracelet-checker
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3001
