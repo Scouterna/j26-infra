@@ -3,4 +3,4 @@ kind: ConfigMap
 metadata:
   name: j26-bracelet-checker-config
 data:
-  AUTH_ISSUER: "https://dev.id.scouterna.se/realms/jamboree26"
+  AUTH_ISSUER: "https://id.dev.j26.se/realms/jamboree26"
