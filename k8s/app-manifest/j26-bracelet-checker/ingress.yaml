@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: j26-bracelet-checker
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /_services/bracelet-checker/$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: app.dev.j26.se
+      http:
+        paths:
+          - path: /_services/bracelet-checker(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: j26-bracelet-checker
+                port:
+                  number: 80

@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: j26-bracelet-checker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: j26-bracelet-checker
+  template:
+    metadata:
+      labels:
+        app: j26-bracelet-checker
+    spec:
+      initContainers:
+        - name: j26-bracelet-checker-init-migrate
+          image: ghcr.io/scouterna/j26-bracelet-checker:latest
+          command: ["node_modules/.bin/prisma", "migrate", "deploy"]
+          envFrom:
+            - configMapRef:
+                name: j26-bracelet-checker-config
+            - secretRef:
+                name: sc-postgresql<ID>-secret
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://$(AZURE_POSTGRESQL_USER):$(AZURE_POSTGRESQL_PASSWORD)@$(AZURE_POSTGRESQL_HOST):$(AZURE_POSTGRESQL_PORT)/$(AZURE_POSTGRESQL_DATABASE)?sslmode=require"
+      containers:
+        - name: j26-bracelet-checker-app
+          image: ghcr.io/scouterna/j26-bracelet-checker:latest
+          ports:
+            - containerPort: 3001
+          envFrom:
+            - configMapRef:
+                name: j26-bracelet-checker-config
+            - secretRef:
+                name: sc-postgresql<ID>-secret
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://$(AZURE_POSTGRESQL_USER):$(AZURE_POSTGRESQL_PASSWORD)@$(AZURE_POSTGRESQL_HOST):$(AZURE_POSTGRESQL_PORT)/$(AZURE_POSTGRESQL_DATABASE)?sslmode=require"
