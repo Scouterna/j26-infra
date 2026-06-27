@@ -13,7 +13,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: scoutid-sync
-              image: ghcr.io/scouterna/j26-scoutid-sync:1d13fb5
+              image: ghcr.io/scouterna/j26-scoutid-sync:sha-1d13fb5
               envFrom:
                 - configMapRef:
                     name: j26-scoutid-sync-config
