@@ -97,3 +97,10 @@ spec:
           imageName: "ghcr.io/scouterna/j26-bracelet-checker"
           commonUpdateSettings:
             updateStrategy: "newest-build"
+
+    - namePattern: "j26-interactive-screens"
+      images:
+        - alias: "app"
+          imageName: "ghcr.io/scouterna/j26-interactive-screens-v2"
+          commonUpdateSettings:
+            updateStrategy: "newest-build"
