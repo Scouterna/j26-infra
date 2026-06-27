@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: j26-interactive-screens-config
+data:
+  OIDC_CONFIG_URL: "/auth/.well-known/openid-configuration"
+  AUTH_COOKIE_NAME: "j26-auth_access-token"
