@@ -1,11 +1,29 @@
 assignments:
+# Uses GitHub Actions expression syntax, see https://docs.github.com/en/actions/reference/workflows-and-actions/expressions
+
+# j26-staff: Funktionär with a function. Sub-grouped by function slug (see function_slugs.csv).
 - groups: [j26-staff]
-  # Uses GitHub Actions expression syntax, see https://docs.github.com/en/actions/reference/workflows-and-actions/expressions
+  dynamicGroups:
+    - parent: j26-staff
+      nameExpression: "lookup('function_slugs.csv', 'slug', getAnswer('Internt', 'Allokering', 'Funktion'))"
   if: |
     contains(fromJSON('["Funktionär"]'), fee.name) &&
     getAnswer('Internt', 'Allokering', 'Funktion')
 
+# j26-staff/j26-rover: staff who have opted into the rover programme.
+- groups: [j26-staff]
+  dynamicGroups:
+    - parent: j26-staff
+      nameExpression: "'j26-rover'"
+  if: |
+    contains(fromJSON('["Funktionär"]'), fee.name) &&
+    getAnswer('Information om ansökan', 'Funktionsval', 'Delta i roverprogramet') == 'checked'
+
+# j26-planning-staff: planning Funktionär. Sub-grouped by function slug (see function_slugs.csv).
 - groups: [j26-planning-staff]
+  dynamicGroups:
+    - parent: j26-planning-staff
+      nameExpression: "lookup('function_slugs.csv', 'slug', getAnswer('Internt', 'Allokering', 'Funktion'))"
   if: |
     contains(fromJSON('["Funktionär"]'), fee.name) &&
     getAnswer('Internt', 'Allokering', 'Planeringsfunktionär') == 'checked'

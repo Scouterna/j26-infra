@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: j26-scoutid-sync
+  name: j26-scoutid-sync-participants
 spec:
   schedule: "0 * * * *"
   concurrencyPolicy: Forbid
@@ -16,9 +16,9 @@ spec:
               image: ghcr.io/scouterna/j26-scoutid-sync:sha-4328a96
               envFrom:
                 - configMapRef:
-                    name: j26-scoutid-sync-config
+                    name: j26-scoutid-sync-participants-config
                 - secretRef:
-                    name: j26-scoutid-sync-secrets
+                    name: j26-scoutid-sync-participants-secrets
               volumeMounts:
                 - name: secrets-store
                   mountPath: "/mnt/secrets-store"
@@ -28,8 +28,8 @@ spec:
                   subPath: config.yml
                   readOnly: true
                 - name: config-file
-                  mountPath: /app/function_slugs.csv
-                  subPath: function_slugs.csv
+                  mountPath: /app/group_mappings.csv
+                  subPath: group_mappings.csv
                   readOnly: true
           volumes:
             - name: secrets-store
@@ -37,7 +37,7 @@ spec:
                 driver: secrets-store.csi.k8s.io
                 readOnly: true
                 volumeAttributes:
-                  secretProviderClass: j26-scoutid-sync-kv-csi
+                  secretProviderClass: j26-scoutid-sync-participants-kv-csi
             - name: config-file
               configMap:
-                name: j26-scoutid-sync-config-file
+                name: j26-scoutid-sync-participants-config-file
