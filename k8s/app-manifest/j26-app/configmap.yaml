@@ -5,7 +5,7 @@ metadata:
 data:
   J26_PUBLIC_TOLGEE_BACKEND_FETCH_PREFIX: https://j26-translations.jamboree.se/dbc78bc1f5f74fadae0a49abfe745c57
   # J26_PUBLIC_APP_CONFIGS: /app-config.json,/another-config.json,/_services/booking/api/app-config,/_services/signupinfo/app-config
-  J26_PUBLIC_APP_CONFIGS: /app-config.json,/_services/signupinfo/app-config,/_services/platsbank/app-config.json,/_services/notification-client/app-config,/_services/booking/api/app-config,/_services/map/app-config.json,/_services/photo-permission/app-config
+  J26_PUBLIC_APP_CONFIGS: /app-config.json,/_services/signupinfo/app-config,/_services/platsbank/app-config.json,/_services/notification-client/app-config,/_services/booking/api/app-config,/_services/map/app-config.json,/_services/photo-permission/app-config,/_services/interactive-screens/api/app-config
   J26_PUBLIC_BOTTOM_NAV_ITEMS: page_notifications,page_info,page_activities,page_map,page_more
   J26_PUBLIC_ADDITIONAL_ROOT_PATHS: /notifs
   J26_PUBLIC_NOTIFICATIONS_TENANT: jamboree26
