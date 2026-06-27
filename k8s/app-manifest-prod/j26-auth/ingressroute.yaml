@@ -31,7 +31,10 @@ spec:
     - websecure
   routes:
     - kind: Rule
-      match: Host(`app.jamboree.se`) && PathPrefix(`/auth`)
+      # Match exactly /auth and everything under /auth/ — NOT a bare prefix, which
+      # would also catch /authentic, /authz, etc. on the shared app.jamboree.se host
+      # (mirrors the dev nginx rule's /auth(/|$) boundary).
+      match: Host(`app.jamboree.se`) && (Path(`/auth`) || PathPrefix(`/auth/`))
       middlewares:
         - name: strip-auth-prefix
       services:
