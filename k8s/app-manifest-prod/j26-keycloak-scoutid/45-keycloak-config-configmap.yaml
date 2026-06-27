@@ -1,0 +1,826 @@
+apiVersion: v1
+data:
+  00-roles.yaml: |
+    # Custom realm roles. Ported from dev.id.scouterna.se so they're managed
+    # declaratively here rather than created by hand in the admin console.
+    realm: jamboree26
+
+    roles:
+      realm:
+        - name: j26-photography
+          description: "Role handed out to people working with photography which allows them to search limited details for participants."
+          composite: false
+          clientRole: false
+  01-realm.yaml: |
+    # The jamboree26 realm holds all ScoutID/Scoutnet login config. The master realm
+    # is left stock (admin only) — see ensure-master-admin.sh. Mirrors the
+    # master/jamboree26 separation on dev.id.scouterna.se. Ported from the full
+    # upstream provider's own example config (scoutid-keycloak-provider/keycloak-config/,
+    # which targets its local `master` realm) — renamed to jamboree26 and merged with
+    # J26-specific settings (internationalization, login behavior) below.
+    realm: jamboree26
+    enabled: true
+
+    # Token and session lifetimes — matched to the dev.id.scouterna.se / id.dev.j26.se
+    # baseline export taken as the production source of truth.
+    accessTokenLifespan: 1800         # 30 minutes
+    ssoSessionIdleTimeout: 2592000    # 30 days
+    ssoSessionMaxLifespan: 2592000    # 30 days
+
+    # Shared ScoutID login theme (upstream scoutid-keycloak-theme, baked into the
+    # upstream image — no longer vendored/rebranded in this repo).
+    loginTheme: scoutid
+
+    # Internationalization — the login theme ships en + sv. Swedish is the primary
+    # audience; English is available via ?ui_locales=en or an Accept-Language: en
+    # browser. Without this block Keycloak only serves the default locale and ignores
+    # ui_locales/Accept-Language (also reported upstream — see scoutid-keycloak-provider
+    # branch fix/realm-example-i18n).
+    internationalizationEnabled: true
+    supportedLocales:
+      - sv
+      - en
+    defaultLocale: sv
+
+    # Login settings — matched to the production baseline export. Login is by username
+    # only (loginWithEmailAllowed: false); duplicate emails are allowed because Scoutnet
+    # accounts can share an address.
+    registrationAllowed: false
+    resetPasswordAllowed: false
+    rememberMe: false
+    loginWithEmailAllowed: false
+    registrationEmailAsUsername: false
+    duplicateEmailsAllowed: true
+    verifyEmail: false
+    editUsernameAllowed: false
+
+    # Parent group + required child groups for the TWO j26-scoutid-sync CronJobs
+    # (funktionärer sync + participants sync). Both read/write their managed subtree
+    # UNDER /j26-scoutid-sync. Neither creates the parent, nor the top-level child groups
+    # that config.yml's assignments reference — those must PRE-EXIST or the sync throws
+    # `Group "<name>" not found in Keycloak` / `Parent group "<name>" not found`. The
+    # scripts DO create the dynamic sub-groups on demand (function slugs, j26-rover, and
+    # all children under j26-groups/j26-villages/j26-districts — per-kår/village/district),
+    # which must NOT be in config. So we declare the parent + only the required top-level
+    # children here.
+    #   funktionär sync (app-manifest/j26-scoutid-sync) needs: j26-staff, j26-planning-staff
+    #   participants sync (app-manifest/j26-scoutid-sync-participants) needs: j26-leader,
+    #     j26-leader-staff, and the dynamic parents j26-groups, j26-villages, j26-districts
+    # IMPORTANT: the config-cli Job MUST run with IMPORT_MANAGED_GROUP=no-delete
+    # (j26-infra .../40-config-cli.yaml). config-cli's default 'full' managed mode would
+    # PRUNE every group not listed here — i.e. wipe everything the syncs create under
+    # these children (dev had j26-groups=577, j26-villages=242) — on each realm import.
+    # no-delete lets config-cli create/update the declared groups while leaving the
+    # sync-owned descendants untouched.
+    # j26-planning-staff carries client roles (ported from dev) so planning staff get
+    # signupinfo summaries + platsbank booking access via resource_access.<client>.roles.
+    # The others have no roles in dev.
+    groups:
+      - name: j26-scoutid-sync
+        subGroups:
+          - name: j26-staff
+          - name: j26-planning-staff
+            clientRoles:
+              j26-signupinfo:
+                - "summaries:read"
+              j26-platsbank:
+                - "requests:staff:book"
+                - "requests:create"
+          - name: j26-leader
+          - name: j26-leader-staff
+          - name: j26-groups
+          - name: j26-villages
+          - name: j26-districts
+
+    attributes:
+      userProfileEnabled: "true"
+
+    userProfile:
+      groups:
+        - name: basic
+          displayHeader: Grunduppgifter
+        - name: contact
+          displayHeader: Kontaktuppgifter
+        - name: scout
+          displayHeader: Scoutuppgifter
+
+      attributes:
+        - name: username
+          displayName: ${username}
+          group: basic
+          validations:
+            length:
+              min: 3
+              max: 255
+            up-username-not-idn-homograph: {}
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: email
+          displayName: ${email}
+          group: basic
+          validations:
+            email: {}
+            length:
+              max: 255
+          required:
+            roles: [user]
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: firstName
+          displayName: ${firstName}
+          group: basic
+          validations:
+            length:
+              max: 255
+            person-name-prohibited-characters: {}
+          required:
+            roles: [user]
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: lastName
+          displayName: ${lastName}
+          group: basic
+          validations:
+            length:
+              max: 255
+            person-name-prohibited-characters: {}
+          required:
+            roles: [user]
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: birthdate
+          displayName: Födelsedatum
+          group: basic
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: locale
+          displayName: Språk
+          group: basic
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: scouterna_email
+          displayName: Scouterna e-post
+          group: contact
+          validations:
+            email: {}
+            length:
+              max: 255
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: alt_email
+          displayName: Alternativ e-post
+          group: contact
+          validations:
+            email: {}
+            length:
+              max: 255
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: phone_number
+          displayName: Mobilnummer
+          group: contact
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: picture
+          displayName: Profilbild
+          group: basic
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: scoutnet_member_no
+          displayName: Medlemsnummer
+          group: scout
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: primary_group_name
+          displayName: Primär scoutkår
+          group: scout
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: primary_group_no
+          displayName: Primär scoutkår - ID
+          group: scout
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: memberships
+          displayName: Medlemskap och roller
+          group: scout
+          annotations:
+            inputType: textarea
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: group_emails_json
+          displayName: Kåre-postadresser
+          group: scout
+          annotations:
+            inputType: textarea
+          permissions:
+            view: [admin, user]
+            edit: [admin]
+
+        - name: firstlast
+          displayName: first.last
+          permissions:
+            view: [admin]
+            edit: [admin]
+  02-authentication.yaml: |
+    # Two-execution ALTERNATIVE flow from the full upstream provider (replaces the old
+    # minimal-provider's single REQUIRED scoutnet-authenticator execution): a cookie
+    # re-authenticator first, falling back to the interactive Scoutnet authenticator.
+    realm: jamboree26
+
+    authenticationFlows:
+      - alias: "ScoutID browser login"
+        description: "ScoutID browser login flow"
+        providerId: basic-flow
+        topLevel: true
+        builtIn: false
+        authenticationExecutions:
+          - authenticatorFlow: false
+            authenticator: scoutnet-cookie-authenticator
+            requirement: ALTERNATIVE
+            priority: 10
+            authenticatorConfig: scoutid-cookie-config
+          - authenticatorFlow: false
+            authenticator: scoutnet-authenticator
+            requirement: ALTERNATIVE
+            priority: 20
+
+    authenticatorConfig:
+      - alias: scoutid-cookie-config
+        config:
+          scoutnet.fetch.interval.minutes: "60"
+
+    browserFlow: "ScoutID browser login"
+  03-scopes.yaml: |
+    realm: jamboree26
+
+    clientScopes:
+      # Extend the standard profile scope with scoutnet_member_no.
+      #
+      # NOTE: keycloak-config-cli manages scopes in FULL state — the protocolMappers
+      # listed here become the COMPLETE set for this scope; any mapper not listed is
+      # deleted. So the standard built-in profile mappers (preferred_username,
+      # given_name, family_name, full name, etc.) MUST be re-declared here, otherwise
+      # those claims disappear from the token. The standard mappers below are copied
+      # verbatim from Keycloak's default profile scope.
+      - name: profile
+        protocol: openid-connect
+        protocolMappers:
+          # --- standard built-in profile mappers ---
+          - name: username
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: username
+              claim.name: preferred_username
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: given name
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: firstName
+              claim.name: given_name
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: family name
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: lastName
+              claim.name: family_name
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: middle name
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: middleName
+              claim.name: middle_name
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: nickname
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: nickname
+              claim.name: nickname
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: full name
+            protocol: openid-connect
+            protocolMapper: oidc-full-name-mapper
+            config:
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: gender
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: gender
+              claim.name: gender
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: birthdate
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: birthdate
+              claim.name: birthdate
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: zoneinfo
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: zoneinfo
+              claim.name: zoneinfo
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: locale
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: locale
+              claim.name: locale
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: profile
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: profile
+              claim.name: profile
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: picture
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: picture
+              claim.name: picture
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: website
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: website
+              claim.name: website
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: updated at
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: updatedAt
+              claim.name: updated_at
+              jsonType.label: long
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          # --- custom J26 mapper ---
+          - name: scoutnet_member_no
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: scoutnet_member_no
+              claim.name: scoutnet_member_no
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+
+      # Extend the standard email scope with scouterna_email and alt_email.
+      # Standard built-in email/email_verified mappers re-declared (see profile note).
+      - name: email
+        protocol: openid-connect
+        protocolMappers:
+          # --- standard built-in email mappers ---
+          - name: email
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: email
+              claim.name: email
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: email verified
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-property-mapper
+            config:
+              user.attribute: emailVerified
+              claim.name: email_verified
+              jsonType.label: boolean
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          # --- custom J26 mappers ---
+          - name: scouterna_email
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: scouterna_email
+              claim.name: scouterna_email
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: alt_email
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: alt_email
+              claim.name: alt_email
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+
+      # Extend the standard phone scope with phone_number.
+      # Standard built-in phone mappers re-declared (see profile note).
+      #
+      # PENDING DEVELOPER CONFIRMATION (2026-06-27): the standard `phone number`
+      # mapper (user.attribute: phoneNumber) collided with our custom mapper below
+      # (user.attribute: phone_number) — both emit the `phone_number` claim. Decided
+      # provisionally to KEEP the custom mapper (phone_number is the attribute our
+      # scoutnet data populates, consistent with the other scoutnet_* attributes) and
+      # DROP the standard one. The standard `phone_number_verified` mapper is also
+      # omitted (depends on phoneNumberVerified, which we don't populate). Revisit if
+      # the developers confirm phoneNumber is actually used.
+      - name: phone
+        protocol: openid-connect
+        protocolMappers:
+          # --- custom J26 mapper ---
+          - name: phone_number
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: phone_number
+              claim.name: phone_number
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+
+      # Custom scope for organisational membership data
+      - name: scoutnet-memberships
+        description: "Scout group memberships, roles, and organisational data"
+        protocol: openid-connect
+        attributes:
+          include.in.token.scope: "true"
+          display.on.consent.screen: "true"
+        protocolMappers:
+          - name: primary_group_name
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: primary_group_name
+              claim.name: primary_group_name
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: primary_group_no
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: primary_group_no
+              claim.name: primary_group_no
+              jsonType.label: String
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: memberships
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: memberships
+              claim.name: memberships
+              jsonType.label: JSON
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+          - name: group_emails_json
+            protocol: openid-connect
+            protocolMapper: oidc-usermodel-attribute-mapper
+            config:
+              user.attribute: group_emails_json
+              claim.name: group_emails_json
+              jsonType.label: JSON
+              id.token.claim: "true"
+              access.token.claim: "true"
+              userinfo.token.claim: "true"
+              introspection.token.claim: "true"
+  04-clients.yaml: |
+    realm: jamboree26
+
+    # Clients are config-as-truth: this file is the complete, authoritative list of
+    # J26 application clients. keycloak-config-cli runs with default managed mode, so
+    # managed sub-resources (client roles, scope mappings) not present here will be
+    # pruned on the next sync — keep this file in step with reality.
+    #
+    # This is the PRODUCTION clients config (host app.jamboree.se), intended for the
+    # prod branch / production manifests. The dev environment keeps its own existing
+    # configuration (already deployed) and is NOT updated from this file.
+    #
+    # Modeling decided from a code scan of the j26-* repos:
+    #   - Only j26-auth, j26-notifications, j26-group-import authenticate AS the client
+    #     and need a secret.
+    #   - j26-platsbank and j26-signupinfo only VERIFY JWTs; they exist purely as role
+    #     containers so resource_access.<client>.roles can be assigned. No secret/flows.
+    #   - j26-booking is deferred; j26-screens/j26-auth-local and the dev test clients
+    #     are not ported.
+
+    clients:
+      # Account console needs access to all scopes to show custom attributes
+      - clientId: account
+        defaultClientScopes:
+          - profile
+          - email
+          - phone
+          - scoutnet-memberships
+
+      # Keep the admin console on the built-in browser flow so admin login still works
+      - clientId: security-admin-console
+        authenticationFlowBindingOverrides:
+          browser: browser
+        attributes:
+          login_theme: keycloak.v2
+
+      # ── Confidential clients (authenticate as the client; need a secret) ──────────
+
+      # Central OIDC login frontend (authorization-code flow).
+      # Production host app.jamboree.se. No localhost callbacks in prod.
+      - clientId: j26-auth
+        name: Jamboree26
+        enabled: true
+        publicClient: false
+        standardFlowEnabled: true
+        implicitFlowEnabled: false
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: true
+        secret: $(env:J26_AUTH_CLIENT_SECRET)
+        rootUrl: https://app.jamboree.se
+        adminUrl: https://app.jamboree.se
+        baseUrl: https://app.jamboree.se/
+        redirectUris:
+          - https://app.jamboree.se/auth/callback
+          - /auth/callback
+        webOrigins:
+          - https://app.jamboree.se
+        frontchannelLogout: true
+        defaultClientScopes:
+          - service_account
+          - web-origins
+          - acr
+          - profile
+          - roles
+          - basic
+          - email
+
+      - clientId: j26-notifications
+        name: j26-notifications
+        description: "Service account for the notifications backend — reads users and groups"
+        enabled: true
+        publicClient: false
+        standardFlowEnabled: false
+        implicitFlowEnabled: false
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: true
+        secret: $(env:J26_NOTIFICATIONS_CLIENT_SECRET)
+        defaultClientScopes:
+          - service_account
+          - web-origins
+          - acr
+          - profile
+          - roles
+          - basic
+          - email
+
+      # Service account for the j26-scoutid-sync CronJob: creates users and manages
+      # group memberships (via manage-users; see the realm-management roles in the
+      # users block below).
+      - clientId: j26-group-import
+        name: j26-group-import
+        description: "Service account for the group import job (scoutid-sync)"
+        enabled: true
+        publicClient: false
+        standardFlowEnabled: false
+        implicitFlowEnabled: false
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: true
+        secret: $(env:J26_GROUP_IMPORT_CLIENT_SECRET)
+        defaultClientScopes:
+          - service_account
+          - web-origins
+          - acr
+          - profile
+          - roles
+          - basic
+          - email
+
+      # ── Role-container clients (verify JWTs only; no secret, no flows) ────────────
+
+      # j26-platsbank reads resource_access["j26-platsbank"].roles. All six request
+      # roles from the baseline export are kept (the current code uses a subset, but
+      # the full set may be assigned to users already / planned).
+      - clientId: j26-platsbank
+        name: j26-platsbank
+        description: "Role container for platsbank (JWT verification only)"
+        enabled: true
+        publicClient: false
+        standardFlowEnabled: false
+        implicitFlowEnabled: false
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: false
+
+      # j26-signupinfo reads resource_access["j26-signupinfo"].roles (prefix
+      # "j26-signupinfo:") and also accepts the j26-photography realm role.
+      - clientId: j26-signupinfo
+        name: j26-signupinfo
+        description: "Role container for signupinfo (JWT verification only)"
+        enabled: true
+        publicClient: false
+        standardFlowEnabled: false
+        implicitFlowEnabled: false
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: false
+
+      # The following three are kept as role containers so their existing client roles
+      # exist and can be assigned (per developer request). uma_protection is omitted —
+      # Keycloak auto-creates it only when authorization services are enabled, which
+      # these role-container clients deliberately leave off.
+      - clientId: j26-booking
+        name: j26-booking
+        description: "Role container for booking (JWT verification only)"
+        enabled: true
+        publicClient: false
+        standardFlowEnabled: false
+        implicitFlowEnabled: false
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: false
+
+      - clientId: j26-bracelet-checker
+        name: j26-bracelet-checker
+        description: "Role container for bracelet-checker (JWT verification only)"
+        enabled: true
+        publicClient: false
+        standardFlowEnabled: false
+        implicitFlowEnabled: false
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: false
+
+      - clientId: j26-screens
+        name: j26-screens
+        description: "Role container for screens (JWT verification only)"
+        enabled: true
+        publicClient: false
+        standardFlowEnabled: false
+        implicitFlowEnabled: false
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: false
+
+    # Client roles live in this top-level roles.client block keyed by clientId, never
+    # nested inside the clients list (keycloak-config-cli rejects a `roles` field on a
+    # ClientRepresentation). Same pattern as the users block below. These are the role
+    # containers above; keeping the roles here lets resource_access.<client>.roles be
+    # assigned to users.
+    roles:
+      client:
+        j26-platsbank:
+          - name: "requests:create"
+          - name: "requests:staff:create"
+          - name: "requests:staff:book"
+          - name: "requests:leader:create"
+          - name: "requests:leader:book"
+          - name: "requests:admin:book"
+            description: "Allows a user to book on behalf of other users."
+        j26-signupinfo:
+          - name: "all:read"
+          - name: "basic:read"
+          - name: "summaries:read"
+        j26-booking:
+          - name: "events:read"
+        j26-bracelet-checker:
+          - name: "items:create"
+          - name: "items:handout"
+        j26-screens:
+          - name: "devices:read"
+            description: "List devices without modifying them"
+          - name: "devices:write"
+            description: "Create, modify and delete devices"
+          - name: "surveys:read"
+            description: "List surveys and read their results without modifying them"
+          - name: "surveys:write"
+            description: "Create, modify and delete surveys"
+          - name: "tags:read"
+            description: "List tags without modifying them"
+          - name: "tags:write"
+            description: "Create, modify and delete tags"
+
+    # Service-account role assignments live in this top-level users block, never
+    # nested inside clients (keycloak-config-cli syntax).
+    users:
+      - username: service-account-j26-notifications
+        enabled: true
+        serviceAccountClientId: j26-notifications
+        clientRoles:
+          realm-management:
+            - query-groups
+            - view-users
+
+      - username: service-account-j26-group-import
+        enabled: true
+        serviceAccountClientId: j26-group-import
+        clientRoles:
+          realm-management:
+            - manage-users
+            - view-users
+            - query-groups
+            # NOTE: no `manage-groups` — that role does not exist in the
+            # realm-management client (Keycloak 26.5.6). manage-users already covers
+            # managing users' group memberships, which is what scoutid-sync needs.
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: keycloak-config
+  namespace: j26-prod

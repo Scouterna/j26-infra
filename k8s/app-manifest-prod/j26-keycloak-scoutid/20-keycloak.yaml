@@ -1,0 +1,144 @@
+# PRODUCTION ScoutID Keycloak. Self-contained prod copy of the dev manifest.
+# keycloak-db-csi and keycloak-admin-csi are materialized by the CSI driver from
+# 15-secret-provider-class.yaml (Azure Key Vault kv-j26apps-shared-sdc, j26-prod-* objects).
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: j26-prod
+  labels:
+    app: keycloak
+spec:
+  selector:
+    app: keycloak
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+    # Keycloak management port: /health/* and the Prometheus /metrics endpoint.
+    # Scraped by the keycloak ServiceMonitor.
+    - name: management
+      port: 9000
+      targetPort: 9000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: j26-prod
+  labels:
+    app: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: docker.io/library/busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z psql-j26apps-shared-sdc.postgres.database.azure.com 5432; do
+                echo "waiting for postgres..."; sleep 3;
+              done
+      containers:
+        - name: keycloak
+          image: ghcr.io/scouterna/scoutid-keycloak:sha-b08ab09
+          args: ["start", "--optimized"]
+          env:
+            # --- Database (external Azure Postgres, kv-j26apps-shared-sdc) ---
+            - name: KC_DB
+              value: postgres
+            - name: KC_DB_URL
+              value: jdbc:postgresql://psql-j26apps-shared-sdc.postgres.database.azure.com:5432/j26_prod_scoutid?sslmode=require
+            - name: KC_DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-db-csi
+                  key: KC_DB_USERNAME
+            - name: KC_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-db-csi
+                  key: KC_DB_PASSWORD
+            # --- Hostname / proxy (TLS terminated at the Traefik ingress) ---
+            # Public (member-facing) hostname. Keycloak refuses to serve the admin
+            # console here; only /realms/*, /resources/* etc. are reachable.
+            - name: KC_HOSTNAME
+              value: https://id.j26.scoutid.se
+            # Separate admin hostname. The admin console + /admin/* are served only
+            # under this host, which the Traefik IngressRoute can IP-gate.
+            - name: KC_HOSTNAME_ADMIN
+              value: https://admin.id.j26.scoutid.se
+            - name: KC_HTTP_ENABLED
+              value: "true"
+            - name: KC_PROXY_HEADERS
+              value: xforwarded
+            - name: KC_HEALTH_ENABLED
+              value: "true"
+            - name: KC_METRICS_ENABLED
+              value: "true"
+            - name: KC_EVENT_METRICS_USER_ENABLED
+              value: "true"
+            - name: KC_EVENT_METRICS_USER_TAGS
+              value: realm,idp,clientId
+            # --- Bootstrap admin ---
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin-csi
+                  key: KC_BOOTSTRAP_ADMIN_USERNAME
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin-csi
+                  key: KC_BOOTSTRAP_ADMIN_PASSWORD
+            # --- Scoutnet API base (the provider reads this env var) ---
+            - name: SCOUTNET_BASE_URL
+              value: https://scoutnet.se
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: management
+              containerPort: 9000
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 9000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 9000
+            initialDelaySeconds: 60
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 250m
+              memory: 768Mi
+            limits:
+              memory: 1280Mi
+          volumeMounts:
+            # Mounting this is what triggers the CSI driver to materialize
+            # keycloak-db-csi / keycloak-admin-csi (see 15-secret-provider-class.yaml).
+            - name: secrets-store
+              mountPath: /mnt/secrets-store
+              readOnly: true
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: j26-keycloak-scoutid-kv-csi
