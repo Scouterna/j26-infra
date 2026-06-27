@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: j26-scoutid-sync-participants
 spec:
-  schedule: "0 * * * *"
+  schedule: "30 * * * *"
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
