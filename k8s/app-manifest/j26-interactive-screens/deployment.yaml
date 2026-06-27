@@ -15,7 +15,7 @@ spec:
       initContainers:
         - name: j26-interactive-screens-init-migrate
           image: ghcr.io/scouterna/j26-interactive-screens-v2:latest
-          command: ["node_modules/.bin/tsx", "packages/server/src/migrate.ts"]
+          command: ["node", "packages/server/node_modules/tsx/dist/cli.mjs", "packages/server/src/migrate.ts"]
           envFrom:
             - configMapRef:
                 name: j26-interactive-screens-config
