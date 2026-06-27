@@ -1,0 +1,24 @@
+# Prometheus Operator ServiceMonitor for the PRODUCTION Keycloak.
+#
+# The J26 cluster runs kube-prometheus-stack; its Prometheus selects ServiceMonitors
+# by `release: kps` (across all namespaces). Keycloak exposes Prometheus metrics on
+# its management port (9000) at /metrics (KC_METRICS_ENABLED=true).
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: keycloak
+  namespace: j26-prod
+  labels:
+    release: kps
+spec:
+  namespaceSelector:
+    matchNames:
+      - j26-prod
+  selector:
+    matchLabels:
+      app: keycloak
+  endpoints:
+    - port: management
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
