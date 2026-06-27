@@ -3,5 +3,5 @@ kind: ConfigMap
 metadata:
   name: j26-interactive-screens-config
 data:
-  OIDC_CONFIG_URL: "/auth/.well-known/openid-configuration"
+  OIDC_CONFIG_URL: "https://app.dev.j26.se/auth/.well-known/openid-configuration"
   AUTH_COOKIE_NAME: "j26-auth_access-token"
