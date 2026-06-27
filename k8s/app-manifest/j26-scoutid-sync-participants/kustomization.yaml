@@ -10,4 +10,4 @@ configMapGenerator:
   - name: j26-scoutid-sync-participants-config-file
     files:
       - config.yml
-      - group_mappings.csv=../j26-scoutid-sync/group_mappings.csv
+      - group_mappings.csv
