@@ -1,0 +1,41 @@
+# PRODUCTION ingress for j26-auth — Traefik IngressRoute on app.jamboree.se/auth.
+# Added by the prod overlay; the base nginx Ingress is deleted ($patch: delete in
+# kustomization.yaml). Namespace is injected by the overlay's `namespace:` field.
+#
+# The j26-app prod ingress already owns Host(`app.jamboree.se`) Path `/`; this adds
+# a more-specific /auth route on the same host (Traefik routes by longest match).
+#
+# The app mounts all its routes at root (see j26-auth src/app.ts: app.get('/'),
+# app.route('/', auth)) — it does NOT know about the /auth prefix. So /auth MUST be
+# stripped before forwarding, exactly like the dev nginx ingress's rewrite-target
+# /$2. Done here with the strip-auth-prefix StripPrefix middleware. The app's own
+# PUBLIC_URL=.../auth makes it emit /auth-prefixed external URLs regardless.
+#
+# TLS: reuses the existing j26-app-tls-secret (cert-manager already issued it for
+# app.jamboree.se via the j26-app prod ingress), so no new Certificate is needed.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-auth-prefix
+spec:
+  stripPrefix:
+    prefixes:
+      - /auth
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: j26-auth
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`app.jamboree.se`) && PathPrefix(`/auth`)
+      middlewares:
+        - name: strip-auth-prefix
+      services:
+        - name: j26-auth
+          port: 80
+  tls:
+    secretName: j26-app-tls-secret
