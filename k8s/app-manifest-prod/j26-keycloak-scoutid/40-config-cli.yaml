@@ -32,7 +32,11 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: keycloak-config-cli
-          image: docker.io/adorsys/keycloak-config-cli:latest-26
+          # Pinned to an immutable version (not the floating latest-26): this hook
+          # Job re-runs on every ArgoCD sync, so a moved upstream tag could change
+          # prod behavior with no Git change. Bump deliberately. 6.5.1-26 == the
+          # latest-26 that was validated during manual verification.
+          image: docker.io/adorsys/keycloak-config-cli:6.5.1-26
           env:
             - name: KEYCLOAK_URL
               value: http://keycloak:8080
