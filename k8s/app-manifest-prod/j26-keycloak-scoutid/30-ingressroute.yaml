@@ -2,9 +2,9 @@
 #
 # Split-hostname design (mirrors the dev manifest and scoutid-keycloak-infra's
 # publicDomainName / adminDomainName Front Door split):
-#   - id.j26.scoutid.se        — public, member-facing login. Keycloak (via
+#   - j26.scoutid.se        — public, member-facing login. Keycloak (via
 #                                KC_HOSTNAME) does NOT serve the admin console here.
-#   - admin.id.j26.scoutid.se  — admin console + /admin/* (via KC_HOSTNAME_ADMIN).
+#   - admin.j26.scoutid.se  — admin console + /admin/* (via KC_HOSTNAME_ADMIN).
 #                                IP-gate this with the ipAllowList middleware below.
 #
 # TLS: cert-manager mints the certs (HTTP-01 via the letsencrypt-traefik
@@ -14,28 +14,28 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: id-j26-scoutid-se-tls
+  name: j26-scoutid-se-tls
   namespace: j26-prod
 spec:
-  secretName: id-j26-scoutid-se-tls
+  secretName: j26-scoutid-se-tls
   issuerRef:
     name: letsencrypt-traefik
     kind: ClusterIssuer
   dnsNames:
-    - id.j26.scoutid.se
+    - j26.scoutid.se
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: admin-id-j26-scoutid-se-tls
+  name: admin-j26-scoutid-se-tls
   namespace: j26-prod
 spec:
-  secretName: admin-id-j26-scoutid-se-tls
+  secretName: admin-j26-scoutid-se-tls
   issuerRef:
     name: letsencrypt-traefik
     kind: ClusterIssuer
   dnsNames:
-    - admin.id.j26.scoutid.se
+    - admin.j26.scoutid.se
 ---
 # IP allow-list for the admin host. NOT attached yet (deploying admin open for now
 # per decision) — to enable, add it to the admin IngressRoute's `middlewares:` list
@@ -60,7 +60,7 @@ metadata:
   namespace: j26-prod
 spec:
   redirectRegex:
-    regex: "^https://id\\.j26\\.scoutid\\.se/?$"
+    regex: "^https://j26\\.scoutid\\.se/?$"
     replacement: "https://www.scouterna.se/scout-ledare-kar/leda-kar/etjanster/scoutid/"
     permanent: true
 ---
@@ -80,24 +80,24 @@ spec:
     - websecure
   routes:
     - kind: Rule
-      match: Host(`id.j26.scoutid.se`) && Path(`/`)
+      match: Host(`j26.scoutid.se`) && Path(`/`)
       middlewares:
         - name: redirect-root-to-scouterna
       services:
         - name: keycloak
           port: 8080
     - kind: Rule
-      match: Host(`id.j26.scoutid.se`) && PathPrefix(`/realms`)
+      match: Host(`j26.scoutid.se`) && PathPrefix(`/realms`)
       services:
         - name: keycloak
           port: 8080
     - kind: Rule
-      match: Host(`id.j26.scoutid.se`) && PathPrefix(`/resources`)
+      match: Host(`j26.scoutid.se`) && PathPrefix(`/resources`)
       services:
         - name: keycloak
           port: 8080
   tls:
-    secretName: id-j26-scoutid-se-tls
+    secretName: j26-scoutid-se-tls
 ---
 # Admin IngressRoute — admin console (KC_HOSTNAME_ADMIN host). To IP-gate, add
 # `admin-ip-allowlist` under middlewares (and set its sourceRange above).
@@ -111,11 +111,11 @@ spec:
     - websecure
   routes:
     - kind: Rule
-      match: Host(`admin.id.j26.scoutid.se`)
+      match: Host(`admin.j26.scoutid.se`)
       # middlewares:
       #   - name: admin-ip-allowlist
       services:
         - name: keycloak
           port: 8080
   tls:
-    secretName: admin-id-j26-scoutid-se-tls
+    secretName: admin-j26-scoutid-se-tls
