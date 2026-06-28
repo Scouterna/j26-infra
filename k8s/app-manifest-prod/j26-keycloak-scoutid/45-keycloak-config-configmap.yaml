@@ -1,3 +1,7 @@
+# Generated from keycloak-config/*.yaml via:
+#   kubectl create configmap keycloak-config --namespace j26-keycloak-scoutid \
+#     --from-file=keycloak-config --dry-run=client -o yaml > k8s/45-keycloak-config-configmap.yaml
+# Re-run that command when any keycloak-config/*.yaml file changes.
 apiVersion: v1
 data:
   00-roles.yaml: |
@@ -60,37 +64,37 @@ data:
     # that config.yml's assignments reference — those must PRE-EXIST or the sync throws
     # `Group "<name>" not found in Keycloak` / `Parent group "<name>" not found`. The
     # scripts DO create the dynamic sub-groups on demand (function slugs, j26-rover, and
-    # all children under j26-groups/j26-villages/j26-districts — per-kår/village/district),
+    # all children under groups/villages/districts — per-kår/village/district),
     # which must NOT be in config. So we declare the parent + only the required top-level
     # children here.
-    #   funktionär sync (app-manifest/j26-scoutid-sync) needs: j26-staff, j26-planning-staff
-    #   participants sync (app-manifest/j26-scoutid-sync-participants) needs: j26-leader,
-    #     j26-leader-staff, and the dynamic parents j26-groups, j26-villages, j26-districts
+    #   funktionär sync (app-manifest/j26-scoutid-sync) needs: staff, planning-staff
+    #   participants sync (app-manifest/j26-scoutid-sync-participants) needs: leader,
+    #     leader-staff, and the dynamic parents groups, villages, districts
     # IMPORTANT: the config-cli Job MUST run with IMPORT_MANAGED_GROUP=no-delete
     # (j26-infra .../40-config-cli.yaml). config-cli's default 'full' managed mode would
     # PRUNE every group not listed here — i.e. wipe everything the syncs create under
-    # these children (dev had j26-groups=577, j26-villages=242) — on each realm import.
+    # these children (dev had groups=577, villages=242) — on each realm import.
     # no-delete lets config-cli create/update the declared groups while leaving the
     # sync-owned descendants untouched.
-    # j26-planning-staff carries client roles (ported from dev) so planning staff get
+    # planning-staff carries client roles (ported from dev) so planning staff get
     # signupinfo summaries + platsbank booking access via resource_access.<client>.roles.
     # The others have no roles in dev.
     groups:
       - name: j26-scoutid-sync
         subGroups:
-          - name: j26-staff
-          - name: j26-planning-staff
+          - name: staff
+          - name: planning-staff
             clientRoles:
               j26-signupinfo:
                 - "summaries:read"
               j26-platsbank:
                 - "requests:staff:book"
                 - "requests:create"
-          - name: j26-leader
-          - name: j26-leader-staff
-          - name: j26-groups
-          - name: j26-villages
-          - name: j26-districts
+          - name: leader
+          - name: leader-staff
+          - name: groups
+          - name: villages
+          - name: districts
 
     attributes:
       userProfileEnabled: "true"
