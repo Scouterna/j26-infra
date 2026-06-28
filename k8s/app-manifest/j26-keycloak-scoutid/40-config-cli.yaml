@@ -1,10 +1,16 @@
 # keycloak-config-cli Job. Applies the realm/auth/scope/client config from the
 # keycloak-config ConfigMap (k8s/45-keycloak-config-configmap.yaml).
 #
-# ArgoCD lifecycle:
+# DEV: the Sync hook is intentionally DISABLED. The config in 45-keycloak-config-
+# configmap.yaml is obsolete and the realm is now maintained by hand on dev; re-running
+# config-cli on every sync would clobber those manual changes. Without the
+# `argocd.argoproj.io/hook` annotation ArgoCD treats the completed Job as ordinary
+# desired-state and never re-runs it (selfHeal won't recreate a finished Job). The Job
+# still runs once on a fresh namespace to bootstrap the realm. To re-enable continuous
+# config management, fix the ConfigMap and restore the hook annotations below.
+#
+# Original hook lifecycle (kept for reference / prod parity):
 #   hook: Sync — re-runs on every ArgoCD sync (picks up config changes).
-#     Without this annotation ArgoCD treats a completed Job as desired-state and
-#     never re-runs it.
 #   hook-delete-policy: BeforeHookCreation — deletes the old Job before each run,
 #     same as the manual `kubectl delete job … --ignore-not-found` in apply.sh.
 #
@@ -15,9 +21,6 @@ kind: Job
 metadata:
   name: keycloak-config
   namespace: j26-keycloak-scoutid
-  annotations:
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
   backoffLimit: 10
   ttlSecondsAfterFinished: 600
