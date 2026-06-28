@@ -74,11 +74,11 @@ spec:
             # Public (member-facing) hostname. Keycloak refuses to serve the admin
             # console here; only /realms/*, /resources/* etc. are reachable.
             - name: KC_HOSTNAME
-              value: https://id.j26.scoutid.se
+              value: https://j26.scoutid.se
             # Separate admin hostname. The admin console + /admin/* are served only
             # under this host, which the Traefik IngressRoute can IP-gate.
             - name: KC_HOSTNAME_ADMIN
-              value: https://admin.id.j26.scoutid.se
+              value: https://admin.j26.scoutid.se
             - name: KC_HTTP_ENABLED
               value: "true"
             - name: KC_PROXY_HEADERS
