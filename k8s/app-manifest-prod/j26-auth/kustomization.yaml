@@ -54,4 +54,4 @@ configMapGenerator:
     literals:
       - PUBLIC_URL=https://app.jamboree.se/auth
       - ALLOWED_REDIRECT_DOMAINS=app.jamboree.se
-      - OIDC_SERVER=https://id.j26.scoutid.se/realms/jamboree26
+      - OIDC_SERVER=https://j26.scoutid.se/realms/jamboree26
