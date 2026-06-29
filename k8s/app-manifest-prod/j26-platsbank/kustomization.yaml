@@ -3,7 +3,7 @@ kind: Kustomization
 
 # Production overlay for j26-platsbank (Gleam-less TS service + Prisma; "platsbank"). References the
 # dev package as a base (left untouched) and patches only what differs in prod, per
-# [[prod_overlay_pattern]]:
+# the same prod-overlay pattern as the j26-app / j26-auth overlays:
 #   - namespace: j26-prod
 #   - image pinned to 0.1.0 (dev base tracks :latest; bare 0.1.0, no leading v)
 #   - DB: dev uses the Azure Service Connector secret sc-postgresql531ff-secret; prod DROPS Service
