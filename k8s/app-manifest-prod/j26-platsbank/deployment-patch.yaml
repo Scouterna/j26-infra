@@ -1,0 +1,61 @@
+# Prod deployment patch for j26-platsbank: switch the DB source from the dev Service Connector
+# secret (sc-postgresql531ff-secret + AZURE_POSTGRESQL_* interpolation) to the prod KV DSN via CSI.
+# JSON6902 so we can surgically REPLACE the envFrom lists (dropping the sc-postgresql* secretRef,
+# keeping the configMapRef) and the DATABASE_URL env, and ADD the CSI volume + mounts.
+#
+# Applies to both the init-migrate container (Prisma migrate deploy) and the app container.
+# DATABASE_URL now comes from the j26-platsbank-secrets Secret (materialized by the SPC from
+# j26-prod-platsbank-postgres-dsn). The CSI volume mount is what triggers the secret sync.
+
+# --- initContainer[0]: j26-platsbank-init-migrate ---
+- op: replace
+  path: /spec/template/spec/initContainers/0/envFrom
+  value:
+    - configMapRef:
+        name: j26-platsbank-config
+- op: replace
+  path: /spec/template/spec/initContainers/0/env
+  value:
+    - name: DATABASE_URL
+      valueFrom:
+        secretKeyRef:
+          name: j26-platsbank-secrets
+          key: DATABASE_URL
+- op: add
+  path: /spec/template/spec/initContainers/0/volumeMounts
+  value:
+    - name: secrets-store
+      mountPath: /mnt/secrets-store
+      readOnly: true
+
+# --- container[0]: j26-platsbank-app ---
+- op: replace
+  path: /spec/template/spec/containers/0/envFrom
+  value:
+    - configMapRef:
+        name: j26-platsbank-config
+- op: replace
+  path: /spec/template/spec/containers/0/env
+  value:
+    - name: DATABASE_URL
+      valueFrom:
+        secretKeyRef:
+          name: j26-platsbank-secrets
+          key: DATABASE_URL
+- op: add
+  path: /spec/template/spec/containers/0/volumeMounts
+  value:
+    - name: secrets-store
+      mountPath: /mnt/secrets-store
+      readOnly: true
+
+# --- pod volumes: add the CSI volume ---
+- op: add
+  path: /spec/template/spec/volumes
+  value:
+    - name: secrets-store
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: j26-platsbank-kv-csi

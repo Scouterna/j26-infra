@@ -1,0 +1,16 @@
+# Prod deployment patch for j26-cms: switch the DB source from the dev Service Connector secret
+# (sc-postgresqlccec9-secret + 5 AZURE_POSTGRESQL_* vars + interpolated DATABASE_URL) to the prod KV
+# DSN via CSI. JSON6902 REPLACE of the whole container env block with a single DATABASE_URL sourced
+# from the j26-cms-secrets Secret (materialized by the SPC from j26-prod-cms-postgres-dsn).
+#
+# The CSI volume + mount and the envFrom (configMapRef j26-cms-config + secretRef j26-cms-secrets)
+# already exist in the dev base and are unchanged — j26-cms-secrets now also carries DATABASE_URL.
+# Single app container, no init container (Payload migrates on boot).
+- op: replace
+  path: /spec/template/spec/containers/0/env
+  value:
+    - name: DATABASE_URL
+      valueFrom:
+        secretKeyRef:
+          name: j26-cms-secrets
+          key: DATABASE_URL
