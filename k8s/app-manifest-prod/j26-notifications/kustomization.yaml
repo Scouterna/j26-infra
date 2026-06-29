@@ -1,0 +1,61 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Production overlay for j26-notifications (notification-api + notification-client). References
+# the dev package as a base (left untouched) and patches only what differs in prod, mirroring the
+# j26-auth prod overlay. Prod differences:
+#   - namespace: j26-prod
+#   - images: both pinned to v0.1.0 (dev base tracks :latest)
+#   - ConfigMap: prod Keycloak admin host (KC_API). KC_REALM=jamboree26, KC_SA_ACCOUNT=
+#     j26-notifications and FCM_PROJECT_ID=j26-messaging are the SAME in prod, inherited unchanged.
+#   - SecretProviderClass: prod KV object names (see secret-provider-class-patch.yaml)
+#   - ingress: dev's two nginx Ingresses are removed and replaced by Traefik IngressRoutes
+#     (+ a StripPrefix middleware for the API) — a different kind, so it can't be strategic-merged
+#     the way j26-app swaps its Ingress in place.
+namespace: j26-prod
+
+resources:
+  - ../../app-manifest/j26-notifications
+  # Traefik routing added on top of the base (the base nginx Ingresses are deleted by the
+  # $patch: delete entries below).
+  - ingressroute.yaml
+
+# Pinned production image tags — bumped by an explicit commit, never by the image updater (the
+# -prod ArgoCD app is excluded from it). The dev base tracks :latest; prod pins the released
+# version. NB: the published GHCR tag carries the leading `v` (v0.1.0) for these images.
+images:
+  - name: ghcr.io/scouterna/j26-notifications
+    newTag: "v0.1.0"
+  - name: ghcr.io/scouterna/j26-notifications-client
+    newTag: "v0.1.0"
+
+patches:
+  # Delete the base nginx Ingresses entirely — prod uses Traefik IngressRoutes (different kind)
+  # defined in ingressroute.yaml, not Ingresses.
+  - patch: |-
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: notification-api
+      $patch: delete
+  - patch: |-
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: notification-client
+      $patch: delete
+  # Repoint the SecretProviderClass at the prod KV objects. objectName appears in two places
+  # (secretObjects.data and the parameters.objects scalar); both are restated in the patch file.
+  - path: secret-provider-class-patch.yaml
+    target:
+      kind: SecretProviderClass
+      name: j26-notifications-kv-csi
+
+# Override only the dev-specific ConfigMap value; all other keys are inherited from the base
+# ConfigMap unchanged. Merging by name into the existing (non-generated) ConfigMap does not add a
+# hash suffix, so the Deployment's envFrom.configMapRef.name stays valid.
+configMapGenerator:
+  - name: notification-env-vars
+    behavior: merge
+    literals:
+      - KC_API=https://admin.j26.scoutid.se

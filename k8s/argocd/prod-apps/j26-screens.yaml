@@ -1,0 +1,27 @@
+# Production Application for j26-screens (static screens-display frontend).
+#
+# Name is `j26-screens-prod` (NOT `j26-screens`) on purpose: the dev Application owns the plain
+# name, and the `-prod` suffix keeps this out of the argocd-image-updater (same rationale as
+# j26-app-prod). The prod image is pinned to 0.1.0 in the overlay's kustomize `images:` field and
+# bumped by an explicit Git commit. Kustomize overlay on the dev base; deployed into j26-prod.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: j26-screens-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: prod
+  source:
+    repoURL: https://github.com/Scouterna/j26-infra.git
+    targetRevision: main
+    path: k8s/app-manifest-prod/j26-screens
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: j26-prod
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true

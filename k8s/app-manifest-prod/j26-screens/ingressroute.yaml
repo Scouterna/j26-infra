@@ -1,0 +1,33 @@
+# PRODUCTION ingress for j26-screens — Traefik IngressRoute on app.jamboree.se/_services/screens.
+# Added by the prod overlay; the base nginx Ingress is deleted ($patch: delete in
+# kustomization.yaml). Namespace is injected by the overlay's `namespace:` field.
+#
+# Dev nginx STRIPS the prefix (rewrite-target /$2) — the static app is served at root — so prod
+# uses a StripPrefix middleware. Coexists with j26-app `/` (Traefik longest match). TLS reuses the
+# existing j26-app-tls-secret (cert-manager already issued it for app.jamboree.se).
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-screens-prefix
+spec:
+  stripPrefix:
+    prefixes:
+      - /_services/screens
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: j26-screens
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`app.jamboree.se`) && (Path(`/_services/screens`) || PathPrefix(`/_services/screens/`))
+      middlewares:
+        - name: strip-screens-prefix
+      services:
+        - name: j26-screens
+          port: 80
+  tls:
+    secretName: j26-app-tls-secret
