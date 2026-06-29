@@ -1,0 +1,34 @@
+# PRODUCTION ingress for j26-signupinfo — Traefik IngressRoute on app.jamboree.se/_services/signupinfo.
+# Added by the prod overlay; the base nginx Ingress is deleted ($patch: delete in
+# kustomization.yaml). Namespace is injected by the overlay's `namespace:` field.
+#
+# Dev nginx STRIPS the prefix (rewrite-target /$2) and sets x-forwarded-prefix /_services/signupinfo.
+# Traefik's StripPrefix does both — removes the prefix AND sets X-Forwarded-Prefix — so the FastAPI
+# app rebuilds external URLs the same way it does in dev. Coexists with j26-app `/` (longest match).
+# TLS reuses the existing j26-app-tls-secret (cert-manager already issued it for app.jamboree.se).
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-signupinfo-prefix
+spec:
+  stripPrefix:
+    prefixes:
+      - /_services/signupinfo
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: j26-signupinfo
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`app.jamboree.se`) && (Path(`/_services/signupinfo`) || PathPrefix(`/_services/signupinfo/`))
+      middlewares:
+        - name: strip-signupinfo-prefix
+      services:
+        - name: j26-signupinfo
+          port: 80
+  tls:
+    secretName: j26-app-tls-secret

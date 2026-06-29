@@ -1,0 +1,27 @@
+# PRODUCTION ingress for j26-photo-permission — Traefik IngressRoute on
+# app.jamboree.se/_services/photo-permission. Added by the prod overlay; the base nginx Ingress is
+# deleted ($patch: delete in kustomization.yaml). Namespace is injected by the overlay's
+# `namespace:` field.
+#
+# Like notification-client (and UNLIKE map/screens/signupinfo), dev does NOT strip the prefix — it
+# rewrites back to /_services/photo-permission/$2, i.e. the app is served WITH its base path because
+# the app is built/run with J26_SERVICE_BASE_PATH=/_services/photo-permission (inherited unchanged
+# from the dev base). So this route forwards the full path with NO StripPrefix middleware.
+#
+# Coexists with j26-app `/` (Traefik longest match). TLS reuses the existing j26-app-tls-secret
+# (cert-manager already issued it for app.jamboree.se via the j26-app prod ingress).
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: photo-permission
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`app.jamboree.se`) && (Path(`/_services/photo-permission`) || PathPrefix(`/_services/photo-permission/`))
+      services:
+        - name: photo-permission
+          port: 80
+  tls:
+    secretName: j26-app-tls-secret

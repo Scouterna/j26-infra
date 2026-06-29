@@ -1,0 +1,12 @@
+# Prod patch for the j26-signupinfo ServiceMonitor. The overlay's `namespace: j26-prod` rewrites
+# metadata.namespace automatically, but NOT the spec.namespaceSelector.matchNames content (kustomize
+# does not rewrite arbitrary spec fields). Without this the prod ServiceMonitor would still select
+# the dev `j26-signupinfo` namespace and never scrape the prod pod. Restate matchNames → j26-prod.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: j26-signupinfo
+spec:
+  namespaceSelector:
+    matchNames:
+      - j26-prod
