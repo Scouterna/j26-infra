@@ -770,6 +770,9 @@ data:
     # assigned to users.
     roles:
       client:
+        j26-notifications:
+          - name: notification-sender
+            description: "Sender of notifications"
         j26-platsbank:
           - name: "requests:create"
           - name: "requests:staff:create"
