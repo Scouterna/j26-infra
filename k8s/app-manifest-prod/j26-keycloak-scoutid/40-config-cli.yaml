@@ -1,0 +1,104 @@
+# keycloak-config-cli Job (PRODUCTION). Applies the realm/auth/scope/client config
+# from the keycloak-config ConfigMap (45-keycloak-config-configmap.yaml).
+#
+# ArgoCD lifecycle:
+#   hook: Sync — re-runs on every ArgoCD sync (picks up config changes).
+#     Without this annotation ArgoCD treats a completed Job as desired-state and
+#     never re-runs it.
+#   hook-delete-policy: BeforeHookCreation — deletes the old Job before each run.
+#
+# No explicit wait needed: KEYCLOAK_AVAILABILITYCHECK_ENABLED polls until Keycloak
+# answers (up to 300s), so apply order between Deployment and this Job doesn't matter.
+#
+# All three confidential clients in 04-clients.yaml use secret: $(env:...), so all
+# three env vars must be present or config-cli sets the client secret to an empty
+# string. They come from keycloak-client-secrets-csi (see 15-secret-provider-class.yaml).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: keycloak-config
+  namespace: j26-prod
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 10
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app: keycloak-config
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: keycloak-config-cli
+          # Pinned to an immutable version (not the floating latest-26): this hook
+          # Job re-runs on every ArgoCD sync, so a moved upstream tag could change
+          # prod behavior with no Git change. Bump deliberately. 6.5.1-26 == the
+          # latest-26 that was validated during manual verification.
+          image: docker.io/adorsys/keycloak-config-cli:6.5.1-26
+          env:
+            - name: KEYCLOAK_URL
+              value: http://keycloak:8080
+            - name: KEYCLOAK_USER
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin-csi
+                  key: KC_BOOTSTRAP_ADMIN_USERNAME
+            - name: KEYCLOAK_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin-csi
+                  key: KC_BOOTSTRAP_ADMIN_PASSWORD
+            - name: KEYCLOAK_AVAILABILITYCHECK_ENABLED
+              value: "true"
+            - name: KEYCLOAK_AVAILABILITYCHECK_TIMEOUT
+              value: "300s"
+            # Enables $(env:VAR) substitution in the imported config (e.g. the
+            # confidential clients' secret: $(env:..._CLIENT_SECRET) in 04-clients.yaml).
+            # OFF by default — without it config-cli stores the literal "$(env:...)"
+            # string as the client secret, so client_credentials/code-exchange fails
+            # with unauthorized_client / "Invalid client credentials".
+            - name: IMPORT_VARSUBSTITUTION_ENABLED
+              value: "true"
+            # 01-realm.yaml declares ONLY the /j26-scoutid-sync parent group. The
+            # default managed-group policy ('full') would PRUNE every child group not
+            # listed in the config — wiping the hundreds of groups the j26-scoutid-sync
+            # CronJob creates under it. no-delete makes config-cli create/update the
+            # declared parent while leaving the sync-owned children untouched.
+            - name: IMPORT_MANAGED_GROUP
+              value: "no-delete"
+            - name: IMPORT_FILES_LOCATIONS
+              value: /config/*
+            - name: J26_AUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-client-secrets-csi
+                  key: J26_AUTH_CLIENT_SECRET
+            - name: J26_NOTIFICATIONS_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-client-secrets-csi
+                  key: J26_NOTIFICATIONS_CLIENT_SECRET
+            - name: J26_GROUP_IMPORT_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-client-secrets-csi
+                  key: J26_GROUP_IMPORT_CLIENT_SECRET
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+            - name: client-secrets
+              mountPath: /mnt/client-secrets
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: keycloak-config
+        - name: client-secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: j26-keycloak-scoutid-kv-csi

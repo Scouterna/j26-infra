@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# PRODUCTION ScoutID Keycloak. Self-contained (full copies, not an overlay on the
+# dev base) because nearly everything differs from dev: namespace, DB, hostnames,
+# and every j26-prod-* KV object name. Deployed into the shared j26-prod namespace.
+#
+# The j26-prod namespace is created/owned by the j26-app prod overlay — this package
+# does not declare it. `namespace:` below forces every resource into j26-prod even if
+# a manifest were to omit it.
+namespace: j26-prod
+
+resources:
+  - 15-secret-provider-class.yaml
+  - 20-keycloak.yaml
+  - 30-ingressroute.yaml
+  - 40-config-cli.yaml
+  - 45-keycloak-config-configmap.yaml
+  - 50-servicemonitor.yaml
+  - 55-ensure-master-admin-job.yaml

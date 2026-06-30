@@ -1,0 +1,34 @@
+# Production Application for the ScoutID Keycloak.
+#
+# Name is `j26-keycloak-scoutid-prod` (NOT `j26-keycloak-scoutid`) on purpose:
+# the dev Application in k8s/argocd/apps/ already owns the plain name, and ArgoCD
+# Application names are unique in the argocd namespace. The `-prod` suffix also keeps
+# this Application out of the argocd-image-updater (same rationale as j26-app-prod);
+# the prod image (scoutid-keycloak:sha-b08ab09) is pinned in the manifests and bumped
+# by an explicit Git commit.
+#
+# This is a self-contained prod package (not an overlay) under app-manifest-prod/,
+# deployed into the shared j26-prod namespace. Its config-cli (Sync) and
+# ensure-master-admin (PostSync) Jobs are ArgoCD hooks — they run on each sync and
+# are idempotent.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: j26-keycloak-scoutid-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: prod
+  source:
+    repoURL: https://github.com/Scouterna/j26-infra.git
+    targetRevision: main
+    path: k8s/app-manifest-prod/j26-keycloak-scoutid
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: j26-prod
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
