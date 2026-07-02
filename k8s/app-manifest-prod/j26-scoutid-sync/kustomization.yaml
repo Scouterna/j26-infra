@@ -1,35 +1,29 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Production overlay for the merged j26-scoutid-sync app (both the staff/funktionär and
-# the participants CronJobs — merged into one base in #33). References the merged dev
-# base and patches only the prod differences for each of the two jobs:
-#   - namespace: j26-prod
-#   - single shared image pinned to the semver 0.2.0 (prod uses semver; dev base tracks
-#     the immutable sha tag)
-#   - per-job ConfigMap: prod Keycloak admin host + prod parent group UUID
-#   - per-job SecretProviderClass: prod KC client-secret object
-#   - per-job schedule skewed off the dev twins (dev staff :00 / participants :30) so
-#     dev and prod never run heavy syncs simultaneously on the shared single node:
-#     dev-staff :00 → prod-staff :15 → dev-participants :30 → prod-participants :45
+# Prod overlay for the merged j26-scoutid-sync app (staff + participants CronJobs).
 namespace: j26-prod
 
 resources:
   - ../../app-manifest/j26-scoutid-sync
 
-# Shared pinned image for BOTH CronJobs — prod convention is a semver tag (0.2.0 ==
-# the dev base's sha-4328a96). Bumped by an explicit Git commit, never the image
-# updater (the -prod ArgoCD app is excluded from it).
+# Shared prod image for both CronJobs. Bumped by an explicit commit (the -prod app is
+# excluded from the image updater).
 images:
   - name: ghcr.io/scouterna/j26-scoutid-sync
-    newTag: "0.2.0"
+    newTag: "0.2.1"
 
 patches:
-  # --- staff / funktionär ---
   - path: secret-provider-class-patch.yaml
     target:
       kind: SecretProviderClass
       name: j26-scoutid-sync-kv-csi
+  - path: secret-provider-class-participants-patch.yaml
+    target:
+      kind: SecretProviderClass
+      name: j26-scoutid-sync-participants-kv-csi
+  # Schedules skewed off the dev twins (dev :00/:30) so dev and prod don't run heavy
+  # syncs at the same time on the single node.
   - patch: |-
       - op: replace
         path: /spec/schedule
@@ -37,11 +31,6 @@ patches:
     target:
       kind: CronJob
       name: j26-scoutid-sync
-  # --- participants ---
-  - path: secret-provider-class-participants-patch.yaml
-    target:
-      kind: SecretProviderClass
-      name: j26-scoutid-sync-participants-kv-csi
   - patch: |-
       - op: replace
         path: /spec/schedule
@@ -50,11 +39,6 @@ patches:
       kind: CronJob
       name: j26-scoutid-sync-participants
 
-# Override only the prod-specific keys on each env ConfigMap; all other keys inherited
-# from the base unchanged. Merging by name into the non-generated ConfigMaps adds no
-# hash suffix, so the CronJobs' envFrom.configMapRef stays valid.
-#   - KEYCLOAK_BASE_URL: prod admin host (dev = admin.id.dev.j26.se)
-#   - KEYCLOAK_PARENT_GROUP_ID: /j26-scoutid-sync group UUID in the PROD jamboree26 realm
 configMapGenerator:
   - name: j26-scoutid-sync-config
     behavior: merge
