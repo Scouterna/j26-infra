@@ -1,13 +1,43 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+# Both Scoutnet->Keycloak sync CronJobs in one app (merged from the former separate
+# j26-scoutid-sync + j26-scoutid-sync-participants packages). They share only the
+# container image; everything else (Scoutnet form, assignment config + CSV, secrets,
+# env, schedule) is per-job, so each has its own ConfigMap / SecretProviderClass /
+# config-file bundle. The single shared `images:` tag below is the whole point of the
+# merge — one place to bump the version for both jobs.
+#
+#   funktionär  CronJob j26-scoutid-sync               (cron-job.yaml,
+#               configmap.yaml, secret-provider-class.yaml,
+#               config.yml + function_slugs.csv)
+#   participants CronJob j26-scoutid-sync-participants  (cron-job-participants.yaml,
+#               configmap-participants.yaml, secret-provider-class-participants.yaml,
+#               config-participants.yml + group_mappings.csv)
+
 resources:
   - configmap.yaml
   - cron-job.yaml
   - secret-provider-class.yaml
+  - configmap-participants.yaml
+  - cron-job-participants.yaml
+  - secret-provider-class-participants.yaml
 
 configMapGenerator:
   - name: j26-scoutid-sync-config-file
     files:
       - config.yml
       - function_slugs.csv
+  - name: j26-scoutid-sync-participants-config-file
+    files:
+      # mounted as /app/config.yml by the participants CronJob via subPath
+      - config-participants.yml
+      - group_mappings.csv
+
+# Shared image for BOTH CronJobs — one place to keep funktionär and participants on
+# the same version. Pinned to an immutable tag (NOT `latest`) so work-in-progress
+# dev builds don't auto-run on the cluster; bump deliberately. The CronJob manifests
+# carry only a placeholder tag — the real tag is set here.
+images:
+  - name: ghcr.io/scouterna/j26-scoutid-sync
+    newTag: sha-7f9c228

@@ -13,7 +13,9 @@ spec:
           restartPolicy: Never
           containers:
             - name: scoutid-sync
-              image: ghcr.io/scouterna/j26-scoutid-sync:sha-7f9c228
+              # Tag is a placeholder — the real tag is set once in kustomization.yaml
+              # (images:), shared by both CronJobs. Do not pin a tag here.
+              image: ghcr.io/scouterna/j26-scoutid-sync:placeholder
               envFrom:
                 - configMapRef:
                     name: j26-scoutid-sync-config
