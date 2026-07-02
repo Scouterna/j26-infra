@@ -13,7 +13,9 @@ spec:
           restartPolicy: Never
           containers:
             - name: scoutid-sync
-              image: ghcr.io/scouterna/j26-scoutid-sync:sha-7f9c228
+              # Tag is a placeholder — the real tag is set once in kustomization.yaml
+              # (images:), shared by both CronJobs. Do not pin a tag here.
+              image: ghcr.io/scouterna/j26-scoutid-sync:placeholder
               envFrom:
                 - configMapRef:
                     name: j26-scoutid-sync-participants-config
@@ -25,7 +27,10 @@ spec:
                   readOnly: true
                 - name: config-file
                   mountPath: /app/config.yml
-                  subPath: config.yml
+                  # The participants config file is config-participants.yml in the
+                  # shared dir (to coexist with the funktionär config.yml); mount it
+                  # AS /app/config.yml, which is what the binary reads.
+                  subPath: config-participants.yml
                   readOnly: true
                 - name: config-file
                   mountPath: /app/group_mappings.csv
