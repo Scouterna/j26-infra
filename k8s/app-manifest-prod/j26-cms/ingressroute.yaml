@@ -1,13 +1,6 @@
-# PRODUCTION ingress for j26-cms (Payload CMS) — Traefik IngressRoute on app.jamboree.se/_services/cms.
-# Added by the prod overlay; the base nginx Ingress is deleted ($patch: delete in kustomization.yaml).
-#
-# Dev does NOT strip the prefix (rewrite-target /_services/cms/$2 — keeps it), so this route forwards
-# the full path with NO StripPrefix. Coexists with j26-app `/` (Traefik longest match). TLS reuses
-# the existing j26-app-tls-secret.
-#
-# The dev nginx ingress sets proxy-body-size: 50m (for media uploads). Traefik's default
-# maxRequestBodyBytes is unlimited (it streams), but to mirror the 50 MiB cap explicitly we attach a
-# buffering middleware. memRequestBodyBytes keeps small bodies in memory; larger spill to disk.
+# Prod route for j26-cms. No StripPrefix — the app keeps its base path. The buffering middleware
+# caps request bodies at 50 MiB (mirrors dev's proxy-body-size: 50m for media uploads). Reuses the
+# app.jamboree.se TLS secret.
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
