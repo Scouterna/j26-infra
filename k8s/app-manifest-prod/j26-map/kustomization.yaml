@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Production overlay for j26-map (static map frontend, no secrets, no DB). References the dev
+# package as a base (left untouched) and patches only what differs in prod, per the same prod-overlay pattern as the j26-app / j26-auth overlays:
+#   - namespace: j26-prod
+#   - image pinned to 0.1.0 (dev base tracks :latest; NB the GHCR tag is bare 0.1.0, no leading v)
+#   - ingress: dev's nginx Ingress is removed and replaced by a Traefik IngressRoute + StripPrefix
+namespace: j26-prod
+
+resources:
+  - ../../app-manifest/j26-map
+  - ingressroute.yaml
+
+images:
+  - name: ghcr.io/scouterna/j26-map
+    newTag: "0.1.0"
+
+patches:
+  # Delete the base nginx Ingress — prod uses a Traefik IngressRoute (different kind).
+  - patch: |-
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: j26-map
+      $patch: delete

@@ -1,0 +1,29 @@
+# Production Application for j26-notifications (notification-api + notification-client).
+#
+# Name is `j26-notifications-prod` (NOT `j26-notifications`) on purpose: the dev Application owns
+# the plain name, and the `-prod` suffix keeps this out of the argocd-image-updater (same
+# rationale as j26-app-prod). The prod images are pinned to v0.1.0 in the overlay's kustomize
+# `images:` field and bumped by an explicit Git commit.
+#
+# Kustomize overlay on the dev base; deployed into the shared j26-prod namespace.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: j26-notifications-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: prod
+  source:
+    repoURL: https://github.com/Scouterna/j26-infra.git
+    targetRevision: main
+    path: k8s/app-manifest-prod/j26-notifications
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: j26-prod
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true

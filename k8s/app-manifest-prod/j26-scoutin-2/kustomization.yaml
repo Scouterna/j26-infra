@@ -1,0 +1,46 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Production overlay for j26-scoutin-2 (check-in app; image is `scoutin-2`, NOT j26-scoutin-2).
+# References the dev package as a base (left untouched) and patches only what differs in prod, per
+# the same prod-overlay pattern as the j26-app / j26-auth overlays:
+#   - namespace: j26-prod
+#   - image pinned to 0.1.0 (dev base tracks :latest; bare 0.1.0, no leading v)
+#   - SecretProviderClass: 21 keys = dev 20 + DATABASE_URL. 3 app-internal secrets repointed to fresh
+#     prod KV objects (token-secret, datasource-hashing-secret/salt); GOOGLE_SA_KEY + 16 SCOUTNET_*
+#     keys REUSE dev (identical data); DATABASE_URL ← prod KV DSN (drops Service Connector). See
+#     secret-provider-class-patch.yaml. Prod DB j26_prod_scoutin_2 created 2026-06-29.
+#   - deployment: drop the sc-postgresql8e64d-secret refs + interpolated DATABASE_URL; source
+#     DATABASE_URL from the CSI secret on both the migrate-init and app containers (deployment-patch).
+#   - ingress: nginx Ingress removed → Traefik IngressRoute (NO StripPrefix — dev keeps the prefix).
+#
+# Inherited unchanged from the base: the config-files configMapGenerator (stepConfig*/dataSourceConfig
+# yaml — no env-specific URLs), the Prisma init-migrate container (now pointed at the prod DB).
+namespace: j26-prod
+
+resources:
+  - ../../app-manifest/j26-scoutin-2
+  - ingressroute.yaml
+
+images:
+  - name: ghcr.io/scouterna/scoutin-2
+    newTag: "0.1.0"
+
+patches:
+  # Delete the base nginx Ingress — prod uses a Traefik IngressRoute (different kind).
+  - patch: |-
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: j26-scoutin-2
+      $patch: delete
+  # Repoint/extend the SecretProviderClass (3 fresh prod app secrets + DB DSN; rest reused).
+  - path: secret-provider-class-patch.yaml
+    target:
+      kind: SecretProviderClass
+      name: j26-scoutin-2-kv-csi
+  # Switch DB source from Service Connector → KV DSN via CSI (init + app containers).
+  - path: deployment-patch.yaml
+    target:
+      kind: Deployment
+      name: j26-scoutin-2
