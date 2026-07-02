@@ -1,26 +1,6 @@
-# PRODUCTION ingress for j26-notifications — Traefik IngressRoutes on app.jamboree.se.
-# Added by the prod overlay; the base nginx Ingresses (notification-api, notification-client)
-# are deleted via $patch: delete in kustomization.yaml. Namespace is injected by the overlay's
-# `namespace:` field. Mirrors the j26-auth prod approach (delete nginx Ingress + add Traefik
-# IngressRoute), but for TWO path-routed services.
-#
-# The j26-app prod ingress already owns Host(`app.jamboree.se`) Path `/`; these add more-specific
-# /_services/* routes on the same host (Traefik routes by longest match), so they coexist.
-#
-# TLS: reuses the existing j26-app-tls-secret (cert-manager already issued it for app.jamboree.se
-# via the j26-app prod ingress), so no new Certificate is needed.
-#
-# --- API (notification-api) ---------------------------------------------------------------------
-# Dev nginx STRIPS the prefix (rewrite-target /$2) and sets x-forwarded-prefix
-# /_services/notifications. Traefik's StripPrefix does both: removes the prefix before forwarding
-# AND sets X-Forwarded-Prefix to the stripped value, so the FastAPI app rebuilds external URLs
-# the same way it does in dev.
-#
-# --- Client (notification-client) ---------------------------------------------------------------
-# Dev nginx does NOT strip — it rewrites back to /_services/notification-client/$2, i.e. the app
-# is served WITH its base path because the Nitro/TanStack server is built with
-# base=/_services/notification-client (J26_SERVICE_BASE_PATH, inherited unchanged from the dev
-# base). So this route forwards the full path with NO StripPrefix.
+# Prod routes for j26-notifications. The API strips its prefix (StripPrefix also sets
+# X-Forwarded-Prefix, which the FastAPI app needs); the client keeps its prefix (it's built with
+# base=/_services/notification-client). Reuses the app.jamboree.se TLS secret.
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
@@ -39,8 +19,6 @@ spec:
     - websecure
   routes:
     - kind: Rule
-      # Match exactly /_services/notifications and everything under it — NOT a bare prefix, which
-      # would also catch /_services/notifications-foo (mirrors the dev nginx (/|$) boundary).
       match: Host(`app.jamboree.se`) && (Path(`/_services/notifications`) || PathPrefix(`/_services/notifications/`))
       middlewares:
         - name: strip-notifications-prefix
@@ -59,7 +37,6 @@ spec:
     - websecure
   routes:
     - kind: Rule
-      # Full path forwarded (no StripPrefix); the client server is built with this base path.
       match: Host(`app.jamboree.se`) && (Path(`/_services/notification-client`) || PathPrefix(`/_services/notification-client/`))
       services:
         - name: notification-client

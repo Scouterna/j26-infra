@@ -1,20 +1,8 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Production overlay for j26-cms (Payload CMS). References the dev package as a base (left untouched)
-# and patches only what differs in prod, per the same prod-overlay pattern as the j26-app / j26-auth overlays:
-#   - namespace: j26-prod
-#   - image pinned to 0.1.0 (dev base tracks :latest; bare 0.1.0, no leading v)
-#   - SecretProviderClass: repoint PAYLOAD_SECRET → prod KV object, and ADD DATABASE_URL ← prod KV DSN
-#     (drops Service Connector — j26-notifications pattern). Prod DB j26_prod_cms created 2026-06-29.
-#   - deployment: replace the 5 AZURE_POSTGRESQL_* SC vars + interpolated DATABASE_URL with a single
-#     DATABASE_URL from the CSI secret (see deployment-patch.yaml). CSI volume/mount already in base.
-#   - ConfigMap: SERVER_URL → https://app.jamboree.se (dev = https://app.dev.j26.se)
-#   - ingress: nginx Ingress removed → Traefik IngressRoute (NO StripPrefix — dev keeps the prefix)
-#     + a buffering middleware mirroring dev's proxy-body-size: 50m.
-#
-# Inherited unchanged from the base: the PVC j26-cms-uploads (10Gi, disk-standardssd) mounted at
-# /app/media, the securityContext fsGroup 1000.
+# Prod overlay for j26-cms (Payload CMS). Unlike dev (Azure Service Connector), prod sources
+# the DB DSN from Key Vault via CSI — see secret-provider-class-patch.yaml + deployment-patch.yaml.
 namespace: j26-prod
 
 resources:
@@ -26,26 +14,22 @@ images:
     newTag: "0.1.0"
 
 patches:
-  # Delete the base nginx Ingress — prod uses a Traefik IngressRoute (different kind).
+  # Replace the base nginx Ingress with a Traefik IngressRoute (see ingressroute.yaml).
   - patch: |-
       apiVersion: networking.k8s.io/v1
       kind: Ingress
       metadata:
         name: j26-cms
       $patch: delete
-  # Repoint/extend the SecretProviderClass (prod payload secret + add DB DSN).
   - path: secret-provider-class-patch.yaml
     target:
       kind: SecretProviderClass
       name: j26-cms-kv-csi
-  # Switch DB source from Service Connector → KV DSN via CSI.
   - path: deployment-patch.yaml
     target:
       kind: Deployment
       name: j26-cms
 
-# Override the prod-specific ConfigMap value; SERVER_URL is the only key. Merging by name into the
-# non-generated ConfigMap adds no hash suffix, so envFrom.configMapRef stays valid.
 configMapGenerator:
   - name: j26-cms-config
     behavior: merge

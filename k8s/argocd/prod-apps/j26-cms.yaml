@@ -1,9 +1,5 @@
-# Production Application for j26-cms (Payload headless CMS).
-#
-# Name is `j26-cms-prod` (NOT `j26-cms`) on purpose: the dev Application owns the plain name, and the
-# `-prod` suffix keeps this out of the argocd-image-updater (same rationale as j26-app-prod). The prod
-# image is pinned to 0.1.0 in the overlay's kustomize `images:` field and bumped by an explicit Git
-# commit. Kustomize overlay on the dev base; deployed into j26-prod.
+# Prod Application for j26-cms. The `-prod` suffix keeps it out of the
+# argocd-image-updater (dev owns the plain name).
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

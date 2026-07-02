@@ -1,9 +1,5 @@
-# PRODUCTION ingress for j26-platsbank — Traefik IngressRoute on app.jamboree.se/_services/platsbank.
-# Added by the prod overlay; the base nginx Ingress is deleted ($patch: delete in kustomization.yaml).
-#
-# Dev does NOT strip the prefix (rewrite-target /_services/platsbank/$2 — keeps it), so this route
-# forwards the full path with NO StripPrefix (like notification-client / photo-permission).
-# Coexists with j26-app `/` (Traefik longest match). TLS reuses the existing j26-app-tls-secret.
+# Prod route for j26-platsbank. No StripPrefix — the app keeps its base path (like dev's
+# rewrite-target /_services/platsbank/$2). Reuses the app.jamboree.se TLS secret.
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:

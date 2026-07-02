@@ -1,20 +1,8 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Production overlay for j26-platsbank (Gleam-less TS service + Prisma; "platsbank"). References the
-# dev package as a base (left untouched) and patches only what differs in prod, per
-# the same prod-overlay pattern as the j26-app / j26-auth overlays:
-#   - namespace: j26-prod
-#   - image pinned to 0.1.0 (dev base tracks :latest; bare 0.1.0, no leading v)
-#   - DB: dev uses the Azure Service Connector secret sc-postgresql531ff-secret; prod DROPS Service
-#     Connector and sources the full DSN from Key Vault via CSI (j26-notifications pattern) — see
-#     secret-provider-class.yaml + deployment-patch.yaml. The prod DB (j26_prod_platsbank, role-owned)
-#     was created 2026-06-29; DSN is in KV object j26-prod-platsbank-postgres-dsn.
-#   - ingress: dev's nginx Ingress is removed and replaced by a Traefik IngressRoute (NO StripPrefix
-#     — dev keeps the prefix via rewrite-target /_services/platsbank/$2).
-#
-# Inherited unchanged from the base: the empty j26-platsbank-config ConfigMap, the Prisma
-# init-migrate container (now pointed at the prod DB), ports.
+# Prod overlay for j26-platsbank. Unlike dev (Azure Service Connector), prod sources the DB
+# DSN from Key Vault via CSI — see secret-provider-class.yaml + deployment-patch.yaml.
 namespace: j26-prod
 
 resources:
@@ -27,14 +15,13 @@ images:
     newTag: "0.1.0"
 
 patches:
-  # Delete the base nginx Ingress — prod uses a Traefik IngressRoute (different kind).
+  # Replace the base nginx Ingress with a Traefik IngressRoute (see ingressroute.yaml).
   - patch: |-
       apiVersion: networking.k8s.io/v1
       kind: Ingress
       metadata:
         name: j26-platsbank
       $patch: delete
-  # Switch DB source from Service Connector → KV DSN via CSI (init + app containers + volume).
   - path: deployment-patch.yaml
     target:
       kind: Deployment

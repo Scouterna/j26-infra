@@ -1,11 +1,5 @@
-# Prod deployment patch for j26-platsbank: switch the DB source from the dev Service Connector
-# secret (sc-postgresql531ff-secret + AZURE_POSTGRESQL_* interpolation) to the prod KV DSN via CSI.
-# JSON6902 so we can surgically REPLACE the envFrom lists (dropping the sc-postgresql* secretRef,
-# keeping the configMapRef) and the DATABASE_URL env, and ADD the CSI volume + mounts.
-#
-# Applies to both the init-migrate container (Prisma migrate deploy) and the app container.
-# DATABASE_URL now comes from the j26-platsbank-secrets Secret (materialized by the SPC from
-# j26-prod-platsbank-postgres-dsn). The CSI volume mount is what triggers the secret sync.
+# Prod: source DATABASE_URL from the CSI secret (drop the dev Service Connector secretRef) and
+# add the CSI volume + mounts, on both the init-migrate and app containers.
 
 # --- initContainer[0]: j26-platsbank-init-migrate ---
 - op: replace

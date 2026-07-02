@@ -1,12 +1,5 @@
-# Prod deployment patch for j26-scoutin-2: switch the DB source from the dev Service Connector secret
-# (sc-postgresql8e64d-secret + AZURE_POSTGRESQL_* interpolation) to the prod KV DSN via CSI.
-# DATABASE_URL now comes from the j26-scoutin-2-secrets Secret (the SPC adds key DATABASE_URL from
-# j26-prod-scoutin-2-postgres-dsn). Applies to both the init-migrate container (Prisma migrate deploy)
-# and the app container.
-#
-# JSON6902 REPLACE of each container's envFrom (keep configMapRef + the j26-scoutin-2-secrets
-# secretRef, drop the sc-postgresql8e64d-secret secretRef) and the DATABASE_URL env. The CSI volume +
-# mount already exist in the dev base (they carry the 20 app secrets) and are unchanged.
+# Prod: source DATABASE_URL from the CSI secret (drop the dev Service Connector secretRef) on both
+# the init-migrate and app containers. (The CSI volume/mount already exist in the base.)
 
 # --- initContainer[0]: j26-scoutin-2-init-migrate ---
 - op: replace
