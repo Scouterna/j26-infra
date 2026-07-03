@@ -10,9 +10,9 @@ resources:
 
 images:
   - name: ghcr.io/scouterna/j26-notifications
-    newTag: "v0.1.0"
+    newTag: "v0.2.0"
   - name: ghcr.io/scouterna/j26-notifications-client
-    newTag: "v0.1.0"
+    newTag: "v0.2.0"
 
 patches:
   # Replace the base nginx Ingresses with Traefik IngressRoutes (see ingressroute.yaml).
