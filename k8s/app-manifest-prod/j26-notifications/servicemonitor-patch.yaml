@@ -1,0 +1,10 @@
+# The base ServiceMonitor's namespaceSelector is a spec value, so the overlay's
+# `namespace: j26-prod` transformer doesn't rewrite it — point it at j26-prod here.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: j26-notifications
+spec:
+  namespaceSelector:
+    matchNames:
+      - j26-prod
