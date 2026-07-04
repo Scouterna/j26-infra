@@ -8,5 +8,6 @@ resources:
   - deployment-client.yaml
   - service-api.yaml
   - service-client.yaml
+  - servicemonitor-api.yaml
   - ingress-api.yaml
   - ingress-client.yaml
