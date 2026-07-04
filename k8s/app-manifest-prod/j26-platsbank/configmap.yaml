@@ -1,0 +1,8 @@
+# Prod-owned config (self-contained — NOT inherited from the dev base, so a dev-side config
+# change can never reach prod). Holds the prod values only.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: j26-platsbank-config
+data:
+  KEYCLOAK_DISCOVERY_URL: "https://app.jamboree.se/auth/.well-known/openid-configuration"
