@@ -32,6 +32,10 @@ patches:
     target:
       kind: SecretProviderClass
       name: j26-notifications-kv-csi
+  - path: servicemonitor-patch.yaml
+    target:
+      kind: ServiceMonitor
+      name: j26-notifications
 
 configMapGenerator:
   - name: notification-env-vars
