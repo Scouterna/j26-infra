@@ -1,7 +1,10 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
+  # Named for the app, not the monitored Service, to match the existing
+  # in-cluster object so ArgoCD adopts it rather than creating a duplicate.
   name: j26-notifications
+  namespace: j26-notifications
   labels:
     release: kps
 spec:
