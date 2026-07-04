@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: j26-notifications
+  labels:
+    release: kps
+spec:
+  namespaceSelector:
+    matchNames:
+      - j26-notifications
+  selector:
+    matchLabels:
+      app: notification-api
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
