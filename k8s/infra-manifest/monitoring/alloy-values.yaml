@@ -34,6 +34,21 @@ alloy:
           action        = "replace"
           target_label  = "namespace"
         }
+
+        // env label: prod for the j26-prod namespace, dev for everything else.
+        // Default to dev, then override to prod when the namespace matches exactly.
+        rule {
+          replacement  = "dev"
+          target_label = "env"
+          action       = "replace"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          regex         = "j26-prod"
+          replacement   = "prod"
+          target_label  = "env"
+          action        = "replace"
+        }
         rule {
           source_labels = ["__meta_kubernetes_pod_name"]
           action        = "replace"
