@@ -1,0 +1,29 @@
+assignments:
+# Uses GitHub Actions expression syntax, see https://docs.github.com/en/actions/reference/workflows-and-actions/expressions
+
+# staff: Funktionär with a function. Sub-grouped by function slug (see function_slugs.csv).
+- groups: [staff]
+  dynamicGroups:
+    - parent: staff
+      nameExpression: "lookup('function_slugs.csv', 'slug', getAnswer('Internt', 'Allokering', 'Funktion'))"
+  if: |
+    contains(fromJSON('["Funktionär"]'), fee.name) &&
+    getAnswer('Internt', 'Allokering', 'Funktion')
+
+# staff/rover: staff who have opted into the rover programme.
+- groups: [staff]
+  dynamicGroups:
+    - parent: staff
+      nameExpression: "'rover'"
+  if: |
+    contains(fromJSON('["Funktionär"]'), fee.name) &&
+    getAnswer('Information om ansökan', 'Funktionsval', 'Delta i roverprogramet') == 'checked'
+
+# planning-staff: planning Funktionär. Sub-grouped by function slug (see function_slugs.csv).
+- groups: [planning-staff]
+  dynamicGroups:
+    - parent: planning-staff
+      nameExpression: "lookup('function_slugs.csv', 'slug', getAnswer('Internt', 'Allokering', 'Funktion'))"
+  if: |
+    contains(fromJSON('["Funktionär"]'), fee.name) &&
+    getAnswer('Internt', 'Allokering', 'Planeringsfunktionär') == 'checked'

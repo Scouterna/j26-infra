@@ -1,52 +1,33 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Prod overlay for the merged j26-scoutid-sync app (staff + participants CronJobs).
+# Self-contained prod package for the merged j26-scoutid-sync app (staff + participants CronJobs).
+# Does NOT reference the dev base — every manifest, including the assignment config + CSVs that
+# drive ~18k prod group memberships, is a prod copy. So no dev-side change can silently reach prod;
+# genuine dev fixes must be carried over deliberately. Schedules are skewed off the dev twins
+# (staff :15, participants :45) so dev and prod don't run heavy syncs at the same time on one node.
 namespace: j26-prod
 
 resources:
-  - ../../app-manifest/j26-scoutid-sync
+  - configmap.yaml
+  - cron-job.yaml
+  - secret-provider-class.yaml
+  - configmap-participants.yaml
+  - cron-job-participants.yaml
+  - secret-provider-class-participants.yaml
 
-# Shared prod image for both CronJobs. Bumped by an explicit commit (the -prod app is
-# excluded from the image updater).
+# Shared prod image for both CronJobs. Bumped by an explicit commit (the -prod app is excluded from
+# the image updater). The CronJob manifests carry only a placeholder tag; the real tag is set here.
 images:
   - name: ghcr.io/scouterna/j26-scoutid-sync
     newTag: "0.2.1"
 
-patches:
-  - path: secret-provider-class-patch.yaml
-    target:
-      kind: SecretProviderClass
-      name: j26-scoutid-sync-kv-csi
-  - path: secret-provider-class-participants-patch.yaml
-    target:
-      kind: SecretProviderClass
-      name: j26-scoutid-sync-participants-kv-csi
-  # Schedules skewed off the dev twins (dev :00/:30) so dev and prod don't run heavy
-  # syncs at the same time on the single node.
-  - patch: |-
-      - op: replace
-        path: /spec/schedule
-        value: "15 * * * *"
-    target:
-      kind: CronJob
-      name: j26-scoutid-sync
-  - patch: |-
-      - op: replace
-        path: /spec/schedule
-        value: "45 * * * *"
-    target:
-      kind: CronJob
-      name: j26-scoutid-sync-participants
-
 configMapGenerator:
-  - name: j26-scoutid-sync-config
-    behavior: merge
-    literals:
-      - KEYCLOAK_BASE_URL=https://admin.j26.scoutid.se
-      - KEYCLOAK_PARENT_GROUP_ID=2f0deedd-16ea-417e-a60f-7b21a3745684
-  - name: j26-scoutid-sync-participants-config
-    behavior: merge
-    literals:
-      - KEYCLOAK_BASE_URL=https://admin.j26.scoutid.se
-      - KEYCLOAK_PARENT_GROUP_ID=2f0deedd-16ea-417e-a60f-7b21a3745684
+  - name: j26-scoutid-sync-config-file
+    files:
+      - config.yml
+      - function_slugs.csv
+  - name: j26-scoutid-sync-participants-config-file
+    files:
+      - config-participants.yml
+      - group_mappings.csv
