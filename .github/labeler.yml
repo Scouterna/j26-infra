@@ -1,7 +1,12 @@
 # Auto-label config for actions/labeler. Applies `prod-review` to any PR that changes a dev-base
-# manifest (k8s/app-manifest/**) — those are the changes that can flow to prod via the overlays, so
-# each one needs an explicit "carry to prod?" decision. Prod-only changes (app-manifest-prod/**) and
-# ArgoCD/infra changes are excluded so they don't get tagged.
+# manifest under `k8s/app-manifest/**` — those changes can flow to prod via the overlays, so each
+# needs an explicit "carry to prod?" decision.
+#
+# The rule matches ONLY `k8s/app-manifest/**`. There is no explicit exclusion list; anything outside
+# that glob simply doesn't match, so it isn't labeled. In particular the prod overlays under
+# `k8s/app-manifest-prod/**` are a sibling path (not under `k8s/app-manifest/`), and `k8s/argocd/**`
+# / `k8s/infra-manifest/**` are unrelated paths — none of them match this glob. Keep the rule scoped
+# this narrowly rather than adding broad patterns.
 prod-review:
   - changed-files:
       - any-glob-to-any-file:
