@@ -1,0 +1,13 @@
+apiVersion: v1
+data:
+  KEYCLOAK_BASE_URL: https://admin.j26.scoutid.se
+  KEYCLOAK_CLIENT_ID: j26-group-import
+  KEYCLOAK_PARENT_GROUP_ID: 2f0deedd-16ea-417e-a60f-7b21a3745684
+  KEYCLOAK_REALM_NAME: jamboree26
+  MAX_RETRIES: "7"
+  SCOUTNET_FORM_ID: "43853"
+  SCOUTNET_PROJECT_ID: "52716"
+  WRITE_CONCURRENCY: "5"
+kind: ConfigMap
+metadata:
+  name: j26-scoutid-sync-config

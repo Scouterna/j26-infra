@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: j26-scoutid-sync
+spec:
+  schedule: "15 * * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: scoutid-sync
+              # Tag is a placeholder — the real tag is set once in kustomization.yaml
+              # (images:), shared by both CronJobs. Do not pin a tag here.
+              image: ghcr.io/scouterna/j26-scoutid-sync:placeholder
+              envFrom:
+                - configMapRef:
+                    name: j26-scoutid-sync-config
+                - secretRef:
+                    name: j26-scoutid-sync-secrets
+              volumeMounts:
+                - name: secrets-store
+                  mountPath: "/mnt/secrets-store"
+                  readOnly: true
+                - name: config-file
+                  mountPath: /app/config.yml
+                  subPath: config.yml
+                  readOnly: true
+                - name: config-file
+                  mountPath: /app/function_slugs.csv
+                  subPath: function_slugs.csv
+                  readOnly: true
+          volumes:
+            - name: secrets-store
+              csi:
+                driver: secrets-store.csi.k8s.io
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: j26-scoutid-sync-kv-csi
+            - name: config-file
+              configMap:
+                name: j26-scoutid-sync-config-file

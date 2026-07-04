@@ -1,0 +1,42 @@
+assignments:
+# Uses GitHub Actions expression syntax, see https://docs.github.com/en/actions/reference/workflows-and-actions/expressions
+
+# 32341: Ledare
+# 32349: Ledare kortvecka (ons-lör)
+# 32348: Ledarfunktionär
+
+# leader: all leader fee types.
+- groups: [leader]
+  if: "contains(fromJSON('[32341, 32349, 32348]'), fee.id)"
+
+# leader/rover: leaders who have opted into the rover programme.
+- groups: [leader]
+  dynamicGroups:
+    - parent: leader
+      nameExpression: "'rover'"
+  if: |
+    contains(fromJSON('[32341, 32349, 32348]'), fee.id) &&
+    getAnswer('Jamboree26:s frågor', 'Extra frågor för ledare', 'Roverprogram') == 'checked'
+
+# leader-staff: Ledarfunktionär only.
+# 32348: Ledarfunktionär
+- groups: [leader-staff]
+  if: "fee.id == 32348"
+
+- groups: []
+  dynamicGroups:
+    - parent: groups
+      nameExpression: "group_id"
+  if: "group_id"
+
+- groups: []
+  dynamicGroups:
+    - parent: villages
+      nameExpression: "lookup('group_mappings.csv', 'village_number', group_id)"
+  if: "lookup('group_mappings.csv', 'village_number', group_id)"
+
+- groups: []
+  dynamicGroups:
+    - parent: districts
+      nameExpression: "lookup('group_mappings.csv', 'district', group_id)"
+  if: "lookup('group_mappings.csv', 'district', group_id)"
