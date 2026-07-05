@@ -1,0 +1,11 @@
+# Prod-owned config (self-contained). The server reads OPEN_ID_CONFIGURATION_URL (NOT
+# JWKS_URL — that key is unused by the code); without it, it falls back to a hardcoded
+# dev Keycloak default and would verify prod tokens against dev keys. BASE_PATH matches
+# the prod ingress route below.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: j26-booking-config
+data:
+  BASE_PATH: /_services/booking
+  OPEN_ID_CONFIGURATION_URL: https://app.jamboree.se/auth/.well-known/openid-configuration

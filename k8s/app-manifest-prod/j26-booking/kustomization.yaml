@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Self-contained prod package for j26-booking (no dev-base reference) so a dev-side
+# config change can't reach prod. Carry genuine dev fixes over deliberately.
+namespace: j26-prod
+
+resources:
+  - configmap.yaml
+  - deployment.yaml
+  - service.yaml
+  - secret-provider-class.yaml
+  - ingressroute.yaml
+
+images:
+  - name: ghcr.io/scouterna/j26-booking
+    newTag: "0.1.0"
+  - name: ghcr.io/scouterna/j26-booking-migrate
+    newTag: "0.1.0"
