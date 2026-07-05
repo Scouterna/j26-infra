@@ -1,0 +1,18 @@
+# Prod route for j26-booking. No StripPrefix — the app expects its prefix (BASE_PATH=
+# /_services/booking; dev's nginx rewrite-target keeps the prefix too). Reuses the
+# app.jamboree.se TLS secret.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: j26-booking
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`app.jamboree.se`) && (Path(`/_services/booking`) || PathPrefix(`/_services/booking/`))
+      services:
+        - name: j26-booking
+          port: 80
+  tls:
+    secretName: j26-app-tls-secret

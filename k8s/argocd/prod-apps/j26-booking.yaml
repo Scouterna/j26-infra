@@ -1,0 +1,23 @@
+# Prod Application for j26-booking. The `-prod` suffix keeps it out of the
+# argocd-image-updater (dev owns the plain name).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: j26-booking-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: prod
+  source:
+    repoURL: https://github.com/Scouterna/j26-infra.git
+    targetRevision: main
+    path: k8s/app-manifest-prod/j26-booking
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: j26-prod
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
