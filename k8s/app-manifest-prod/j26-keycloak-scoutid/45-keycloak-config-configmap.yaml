@@ -664,6 +664,22 @@ data:
           - roles
           - basic
           - email
+        protocolMappers:
+          # Emits a `groups` claim (full group paths, multivalued) into the
+          # access/ID/userinfo tokens. Present in dev; add here so prod matches.
+          - name: Group Memberships
+            protocol: openid-connect
+            protocolMapper: oidc-group-membership-mapper
+            consentRequired: false
+            config:
+              full.path: "true"
+              introspection.token.claim: "true"
+              multivalued: "true"
+              userinfo.token.claim: "true"
+              id.token.claim: "true"
+              lightweight.claim: "false"
+              access.token.claim: "true"
+              claim.name: groups
 
       - clientId: j26-notifications
         name: j26-notifications
