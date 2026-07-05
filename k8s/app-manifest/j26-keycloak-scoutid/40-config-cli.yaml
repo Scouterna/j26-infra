@@ -22,6 +22,12 @@ metadata:
   name: keycloak-config
   namespace: j26-keycloak-scoutid
 spec:
+  # DEV: fully disabled — a suspended Job never creates pods, so config-cli never runs
+  # (not even once), regardless of ArgoCD sync/selfHeal recreating the Job object.
+  # This is the actual kill switch; removing the hook annotation alone was not enough,
+  # because ttlSecondsAfterFinished deletes the finished Job and selfHeal recreates it.
+  # To re-enable, set this to false (or remove it) and restore the hook annotations.
+  suspend: true
   backoffLimit: 10
   ttlSecondsAfterFinished: 600
   template:
