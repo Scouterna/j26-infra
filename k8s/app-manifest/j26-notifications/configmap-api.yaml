@@ -4,6 +4,6 @@ metadata:
   name: notification-env-vars
 data:
   FCM_PROJECT_ID: j26-messaging
-  KC_API: https://admin.dev.id.scouterna.se
+  KC_API: https://admin.id.dev.j26.se
   KC_REALM: jamboree26
   KC_SA_ACCOUNT: j26-notifications
