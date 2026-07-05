@@ -662,7 +662,8 @@ data:
           - email
         protocolMappers:
           # Emits a `groups` claim (full group paths, multivalued) into the
-          # access/ID/userinfo tokens. Present in dev; add here so prod matches.
+          # access / ID / userinfo / introspection tokens, so downstream apps can
+          # authorize on Keycloak group membership.
           - name: Group Memberships
             protocol: openid-connect
             protocolMapper: oidc-group-membership-mapper
