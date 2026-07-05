@@ -13,7 +13,7 @@ resources:
 # image updater (see prod-apps/j26-app.yaml).
 images:
   - name: ghcr.io/scouterna/j26-app
-    newTag: "0.1.2"
+    newTag: "0.2.0"
 
 patches:
   # Strategic-merge: swap host/class/issuer/tls to Traefik (full rules restated).

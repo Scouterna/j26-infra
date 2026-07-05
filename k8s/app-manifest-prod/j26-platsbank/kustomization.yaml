@@ -15,4 +15,4 @@ resources:
 
 images:
   - name: ghcr.io/scouterna/j26-platsbank
-    newTag: "0.1.0"
+    newTag: "0.1.1"
