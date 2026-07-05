@@ -81,6 +81,10 @@ data:
     # The others have no roles in dev.
     groups:
       - name: j26-scoutid-sync
+        clientRoles:
+          # For now we give this role to all users
+          j26-booking:
+            - "bookings:self:create"
         subGroups:
           - name: staff
           - name: planning-staff
@@ -786,7 +790,11 @@ data:
           - name: "basic:read"
           - name: "summaries:read"
         j26-booking:
-          - name: "events:read"
+          - name: "activities:manage"
+          - name: "bookings:read"
+          - name: "bookings:self:create"
+          - name: "bookings:others:create"
+          - name: "admin"
         j26-bracelet-checker:
           - name: "items:create"
           - name: "items:handout"
