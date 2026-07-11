@@ -19,8 +19,8 @@ steps:
       }}
     uses: base:block
     with:
-      title: "Personen får inte checka in"
-      message: "Personen är '${{ steps.identify.outputs.participant.subGroup }}' och kan inte checka in deltagare. Endast ledare kan checka in deltagare."
+      title: "Du kan inte checka in"
+      message: "Endast ledare kan checka in deltagare."
 
   # deduplicateSession will ensure that there is only one session active for the
   # actor. If there are any other sessions the user is prompted to "Pick up
@@ -29,15 +29,44 @@ steps:
   # the current flow is aborted and the old session is resumed.
   - uses: base:deduplicateSession
     with:
-      force: ${{ startsWith(steps.identify.outputs.dataSource, 'stormote6_') && 'new' || null }}
+      force: ${{ steps.identify.outputs.dataSource == 'stormote6_ordinary' && 'new' || null }}
 
   - if: |
       ${{
         steps.identify.outputs.dataSource == 'staff' ||
-        startsWith(steps.identify.outputs.dataSource, 'stormote6_')
+        steps.identify.outputs.dataSource == 'stormote6_ordinary'
       }}
     # setActorAsSubject sets the session.subjects to the actorId from the session.
     uses: base:setActorAsSubject
+
+  - if: |
+      ${{
+        steps.identify.outputs.dataSource == 'staff' ||
+        steps.identify.outputs.dataSource == 'stormote6_ordinary'
+      }}
+    # Self-checkin only: warns and asks for confirmation if this person is
+    # already checked in. Not used for the groups flow, where a leader
+    # completing another session is expected - there is no "done" state to
+    # protect there.
+    uses: base:confirmReCheckin
+
+  - if: ${{ steps.identify.outputs.dataSource == 'staff' }}
+    # Compliance gate: blocks unless both Safe from Harm (Trygga Möten) and
+    # the criminal record extract (registerutdrag) are OK (computed at import
+    # time by the scoutnet:safeFromHarm / scoutnet:criminalRecordExtract
+    # enrichers, see dataSourceConfig.yml). Runs before any data display per
+    # the staff check-in flow design - a failure should abort cheaply, not
+    # after collecting/showing other info.
+    uses: scoutnet:complianceGate
+
+  - if: ${{ steps.identify.outputs.dataSource == 'staff' }}
+    # Informational only (never blocks): shows the person their own
+    # registered special needs (diet, medical, period), computed at import
+    # time by the jamboree26:specialNeeds enricher from Scoutnet registration
+    # answers (see dataSourceConfig.yml). Skips silently when nothing is
+    # registered. Placed after the compliance gate so a blocked person never
+    # reaches it.
+    uses: jamboree26:specialNeeds
 
   - if: ${{ steps.identify.outputs.dataSource == 'groups' }}
     # selectSubjects will automatically use the actorId from the session to
@@ -45,39 +74,5 @@ steps:
     # explicitly here.
     uses: base:selectSubjects
 
-  # # verifySafeFromHarm will check that all selected subjects for which it
-  # # applies have a valid Safe From Harm status in Scoutnet.
-  # - uses: scoutnet:verifySafeFromHarm
-
-  # - uses: base:message
-  #   required: true
-  #   with:
-  #     title: Dummy safe from harm step
-  #     message: This will eventually be replaced by the real deal
-
-  # - uses: printer:print
-  #   with:
-  #     template: badge
-  #     # For every item in the values array a new print job will be created with
-  #     # those values passed to it.
-  #     values: ${{ session.subjects }}
-
   - uses: base:markConfirmedCheckedIn
     required: true
-
-  # - uses: scoutnet:checkLeaderRequirements
-
-  - uses: base:message
-    if: ${{ steps.identify.outputs.dataSource == 'groups' }}
-    id: groupInfo
-    with:
-      title: Kårinfo
-      message: Kåren bor i by 5, stadsdel Östersjön
-
-  - uses: base:message
-    id: successMessage
-    with:
-      title: Incheckning lyckades
-      buttonText:
-        sv: Slutför
-        en: Finish
