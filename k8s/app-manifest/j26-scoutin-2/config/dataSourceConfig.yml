@@ -1,105 +1,55 @@
 dataSources:
-  # groups:
-  #   name:
-  #     sv: ledare i din kår
-  #     en: leader in your scout group
-  #   provider: scoutnet
-  #   subGroups:
-  #     leader:
-  #       name:
-  #         sv: Ledare
-  #         en: Leader
-  #   providerOptions:
-  #     projectId: 56032
-  #     includeIndividuals: false
-  #     includeGroups: true
-  #     subGroupConditions:
-  #       leader:
-  #         condition: |
-  #           ${{
-  #             participant.fee_id == 32006 || # Ledaravgift
-  #             participant.fee_id == 32007 || # Ledaravgift kortvecka
-  #             participant.fee_id == 31997 || # Ledaravgift efteranmälan
-  #             participant.fee_id == 31988    # Ledaravgift kortvecka efteranmälan
-  #           }}
-  #     keys:
-  #       groups: ${SCOUTNET_GROUPS_GROUPS_KEY}
-  #       participants: ${SCOUTNET_GROUPS_PARTICIPANTS_KEY}
-  #       checkin: ${SCOUTNET_GROUPS_CHECKIN_KEY}
-  #       questions: ${SCOUTNET_GROUPS_QUESTIONS_KEY}
-
-  # staff:
-  #   name:
-  #     sv: funktionär
-  #     en: staff (IST)
-  #   provider: scoutnet
-  #   providerOptions:
-  #     projectId: 56033
-  #     feeIds:
-  #       - 32016
-  #     includeIndividuals: true
-  #     includeGroups: false
-  #     keys:
-  #       groups: ${SCOUTNET_STAFF_GROUPS_KEY}
-  #       participants: ${SCOUTNET_STAFF_PARTICIPANTS_KEY}
-  #       checkin: ${SCOUTNET_STAFF_CHECKIN_KEY}
-  #       questions: ${SCOUTNET_STAFF_QUESTIONS_KEY}
-
-  stormote6_ordinary:
-    name:
-      sv: deltagare på Stormöte 6
-      en: deltagare på Stormöte 6
-    provider: scoutnet
-    providerOptions:
-      projectId: 72237
-      includeIndividuals: true
-      includeGroups: false
-      keys:
-        groups: ${SCOUTNET_STORMOTE6_ORDINARY_GROUPS_KEY}
-        participants: ${SCOUTNET_STORMOTE6_ORDINARY_PARTICIPANTS_KEY}
-        checkin: ${SCOUTNET_STORMOTE6_ORDINARY_CHECKIN_KEY}
-        questions: ${SCOUTNET_STORMOTE6_ORDINARY_QUESTIONS_KEY}
-
-  stormote6_late:
-    name:
-      sv: deltagare på Stormöte 6 (efteranmälan)
-      en: participant at Stormöte 6 (late registration)
-    provider: scoutnet
-    providerOptions:
-      projectId: 76074
-      includeIndividuals: true
-      includeGroups: false
-      keys:
-        groups: ${SCOUTNET_STORMOTE6_LATE_GROUPS_KEY}
-        participants: ${SCOUTNET_STORMOTE6_LATE_PARTICIPANTS_KEY}
-        checkin: ${SCOUTNET_STORMOTE6_LATE_CHECKIN_KEY}
-        questions: ${SCOUTNET_STORMOTE6_LATE_QUESTIONS_KEY}
-
-  groups:
-    name:
-      sv: ledare i din kår
-      en: leader in your scout group
-    provider: googlesheets
-    subGroups:
-      leader:
-        name:
-          sv: Ledare
-          en: Leader
-    # activeFrom: 2026-05-13T17:36:00+02:00
-    activeTo: 2026-05-15T17:00:00+02:00
-    providerOptions:
-      spreadsheetId: 1RWd-jRfRncwTCWYhY6KjuLys4rwFljE3yHy2YJasV3U
-      sheetName: People
-      serviceAccountKey: ${GOOGLE_SA_KEY}
-  
   staff:
     name:
       sv: funktionär
       en: staff (IST)
-    provider: googlesheets
-    # activeFrom: 2026-05-13T17:36:00+02:00
-    activeTo: 2026-05-15T17:00:00+02:00
+    provider: scoutnet
+    enrichWith:
+      safeFromHarm: scoutnet:safeFromHarm
+      criminalRecordExtract: scoutnet:criminalRecordExtract
+      # Question IDs are specific to this project's registration form (see
+      # plugins/jamboree26/question-ids.md for the source list from the
+      # Scoutnet project admin). Field names are a code contract with
+      # plugins/jamboree26/src/specialNeeds (grouping logic there matches
+      # these names, not the numeric IDs).
+      specialNeeds:
+        name: jamboree26:specialNeeds
+        options:
+          questions:
+            # Vilka hela perioder personen önskar delta i (multiselect: Förläger/Lägerperiod/Efterläger) - se plugins/jamboree26/src/specialNeeds
+            periodsAttending: "90174"
+            # Frånvaro: kan inte delta alla dagar (checkbox) + vilka dagar (multiselect), per period
+            absenceForlagerLimited: "90175"
+            absenceForlagerDays: "90176"
+            absenceLagerperiodLimited: "90179"
+            absenceLagerperiodDays: "90180"
+            absenceEfterlagerLimited: "90181"
+            absenceEfterlagerDays: "90183"
+            # Medicinskt behov av el vid boplatsen
+            medicalElectricity: "88329"
+            # Specialkost: en checkbox per allergen/behov, plus fritext
+            dietGluten: "88306"
+            dietLaktos: "88285"
+            dietMjolkprotein: "88287"
+            dietAgg: "88279"
+            dietSoja: "88300"
+            dietFisk: "88271"
+            dietKraftdjur: "88308"
+            dietBlotdjur: "88305"
+            dietNotter: "89332"
+            dietSesam: "89333"
+            dietSelleri: "89334"
+            dietSenap: "89335"
+            dietSulfit: "89336"
+            dietOther: "88286"
     providerOptions:
-      spreadsheetId: 1QqBgbGHNrTtoLQBhzUipPEnMmXEOmDQ1X5tUWDSfugU
-      sheetName: People
-      serviceAccountKey: ${GOOGLE_SA_KEY}
+      projectId: 52716
+      feeIds:
+        - 32207
+      includeIndividuals: true
+      includeGroups: false
+      keys:
+        groups: ${SCOUTNET_STAFF_GROUPS_KEY}
+        participants: ${SCOUTNET_STAFF_PARTICIPANTS_KEY}
+        checkin: ${SCOUTNET_STAFF_CHECKIN_KEY}
+        questions: ${SCOUTNET_STAFF_QUESTIONS_KEY}
