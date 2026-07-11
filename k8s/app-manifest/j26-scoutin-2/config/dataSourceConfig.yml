@@ -41,6 +41,12 @@ dataSources:
             dietSelleri: "89334"
             dietSenap: "89335"
             dietSulfit: "89336"
+            dietNotkott: "89337"
+            dietFlaskkott: "89340"
+            dietHalal: "89341"
+            dietVegan: "89342"
+            dietLaktoOvoVegetarian: "89343"
+            dietPescetarian: "89344"
             dietOther: "88286"
     providerOptions:
       projectId: 52716
