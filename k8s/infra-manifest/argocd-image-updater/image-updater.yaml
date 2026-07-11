@@ -66,10 +66,10 @@ spec:
           commonUpdateSettings:
             updateStrategy: "newest-build"
 
-    - namePattern: "j26-scoutin-2"
+    - namePattern: "scoutin-2"
       images:
         - alias: "app"
-          imageName: "ghcr.io/scouterna/j26-scoutin-2"
+          imageName: "ghcr.io/scouterna/scoutin-2"
           commonUpdateSettings:
             updateStrategy: "newest-build"
 
