@@ -58,6 +58,16 @@ steps:
     # the staff check-in flow design - a failure should abort cheaply, not
     # after collecting/showing other info.
     uses: scoutnet:complianceGate
+    with:
+      # Trygga Möten is valid for 3 years from completion. Set to null to
+      # disable the expiry check.
+      safeFromHarmValidYears: 3
+      # Registerutdrag has no expiry by default. Set a number of years to
+      # enforce one (validity is measured from the date it was shown).
+      criminalRecordExtractValidYears: 3
+      # Date (YYYY-MM-DD) validity is checked against - e.g. the event's end
+      # date, so records must stay valid until then. Defaults to today.
+      checkDate: "2026-08-01"
 
   - if: ${{ steps.identify.outputs.dataSource == 'staff' }}
     # Informational only (never blocks): shows the person their own
