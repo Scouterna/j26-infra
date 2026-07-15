@@ -14,6 +14,6 @@ resources:
 
 images:
   - name: ghcr.io/scouterna/j26-booking
-    newTag: "0.1.0"
+    newTag: "0.2.0"
   - name: ghcr.io/scouterna/j26-booking-migrate
-    newTag: "0.1.0"
+    newTag: "0.2.0"
