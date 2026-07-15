@@ -76,24 +76,16 @@ data:
     # these children (dev had groups=577, villages=242) — on each realm import.
     # no-delete lets config-cli create/update the declared groups while leaving the
     # sync-owned descendants untouched.
-    # planning-staff carries client roles (ported from dev) so planning staff get
-    # signupinfo summaries + platsbank booking access via resource_access.<client>.roles.
-    # The others have no roles in dev.
+    # This file declares only the group STRUCTURE. The group-to-client-role ASSIGNMENTS
+    # (planning-staff → signupinfo/platsbank, j26-scoutid-sync → booking) live in
+    # 05-group-roles.yaml, which imports AFTER 04-clients.yaml so the referenced client
+    # roles already exist — a fresh-realm import fails here otherwise (the assignment
+    # references a role config-cli hasn't created yet). See 05-group-roles.yaml.
     groups:
       - name: j26-scoutid-sync
-        clientRoles:
-          # For now we give this role to all users
-          j26-booking:
-            - "bookings:self:create"
         subGroups:
           - name: staff
           - name: planning-staff
-            clientRoles:
-              j26-signupinfo:
-                - "summaries:read"
-              j26-platsbank:
-                - "requests:staff:book"
-                - "requests:create"
           - name: leader
           - name: leader-staff
           - name: groups
@@ -850,6 +842,49 @@ data:
             # NOTE: no `manage-groups` — that role does not exist in the
             # realm-management client (Keycloak 26.5.6). manage-users already covers
             # managing users' group memberships, which is what scoutid-sync needs.
+  05-group-roles.yaml: |
+    # Group → client-role assignments, split out of 01-realm.yaml.
+    #
+    # WHY A SEPARATE FILE: keycloak-config-cli imports files ALPHABETICALLY
+    # (00 → 01 → 02 → 03 → 04 → 05). A group's clientRoles assignment can only be
+    # applied once the referenced client role EXISTS on the realm. Those roles are
+    # defined in 04-clients.yaml (roles.client.<clientId>), so the assignments must
+    # run AFTER 04. Keeping them in 01-realm.yaml (imported 2nd) works in steady
+    # state — the role survives from a previous import — but a FRESH realm rebuild
+    # fails at 01 with a role-not-found error because 04 hasn't run yet. Importing
+    # the assignments here, after 04, fixes the fresh-realm case.
+    #
+    # The group STRUCTURE (subgroup names, no-delete protection) is declared in
+    # 01-realm.yaml. This file re-declares the same structure only so the group
+    # paths resolve for the role attachment; IMPORT_MANAGED_GROUP=no-delete
+    # (j26-infra .../40-config-cli.yaml) keeps the sync-owned descendant groups from
+    # being pruned across this second group import.
+    #
+    # planning-staff carries client roles (ported from dev) so planning staff get
+    # signupinfo summaries + platsbank booking access via resource_access.<client>.roles.
+    # j26-scoutid-sync (the parent) grants booking self-create to all synced users.
+    realm: jamboree26
+
+    groups:
+      - name: j26-scoutid-sync
+        clientRoles:
+          # For now we give this role to all users
+          j26-booking:
+            - "bookings:self:create"
+        subGroups:
+          - name: staff
+          - name: planning-staff
+            clientRoles:
+              j26-signupinfo:
+                - "summaries:read"
+              j26-platsbank:
+                - "requests:staff:book"
+                - "requests:create"
+          - name: leader
+          - name: leader-staff
+          - name: groups
+          - name: villages
+          - name: districts
 kind: ConfigMap
 metadata:
   creationTimestamp: null
