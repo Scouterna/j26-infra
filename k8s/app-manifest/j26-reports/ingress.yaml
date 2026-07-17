@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: j26-reports
+  annotations:
+    # cert-manager.io/cluster-issuer: letsencrypt
+    # nginx.ingress.kubernetes.io/use-regex: "true"
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /_services/reports/$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: app.dev.j26.se
+      http:
+        paths:
+          - path: /_services/reports(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: j26-reports
+                port:
+                  number: 80

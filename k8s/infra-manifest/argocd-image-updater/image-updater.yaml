@@ -104,3 +104,10 @@ spec:
           imageName: "ghcr.io/scouterna/j26-interactive-screens-v2"
           commonUpdateSettings:
             updateStrategy: "newest-build"
+
+    - namePattern: "j26-reports"
+      images:
+        - alias: "app"
+          imageName: "ghcr.io/scouterna/j26-reports"
+          commonUpdateSettings:
+            updateStrategy: "newest-build"

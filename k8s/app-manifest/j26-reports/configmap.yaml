@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: j26-reports-config
+data:
+  KEYCLOAK_DISCOVERY_URL: "https://app.dev.j26.se/auth/.well-known/openid-configuration"
+  SCOUTNET_CACHE_TTL_MS: "900000"
+  STAFF_PROJECT_ID: "52716"
+  PARTICIPANTS_PROJECT_ID: "52710"
