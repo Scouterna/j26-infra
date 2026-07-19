@@ -79,6 +79,7 @@ steps:
     # registered. Placed after the compliance gate so a blocked person never
     # reaches it.
     uses: jamboree26:specialNeeds
+    id: specialNeedsStaff
 
   - if: ${{ steps.identify.outputs.dataSource == 'staffChildren' }}
     # Same informational special-needs screen for staff children. No compliance
@@ -88,6 +89,7 @@ steps:
     # form's differing question IDs are mapped onto the shared field names in
     # dataSourceConfig.yml (staffChildren.enrichWith.specialNeeds).
     uses: jamboree26:specialNeeds
+    id: specialNeedsChild
     with:
       variant: child
 
