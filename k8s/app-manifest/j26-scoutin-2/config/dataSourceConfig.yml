@@ -59,3 +59,63 @@ dataSources:
         participants: ${SCOUTNET_STAFF_PARTICIPANTS_KEY}
         checkin: ${SCOUTNET_STAFF_CHECKIN_KEY}
         questions: ${SCOUTNET_STAFF_QUESTIONS_KEY}
+
+  # Staff children ("medföljande barn till funktionär"): same Scoutnet project
+  # as staff (52716) but a different registration form (43854) and fee (32359),
+  # so a separate data source rather than an extra feeId on `staff`. This keeps
+  # enrichment declarative and per-form: children deliberately do NOT run the
+  # safeFromHarm/criminalRecordExtract enrichers (they never face the compliance
+  # gate - see stepConfig.yml), and their special-needs question IDs differ from
+  # the staff form's while mapping onto the exact same field names (the code
+  # contract with plugins/jamboree26/src/specialNeeds). The child form's diet
+  # and medical concepts are identical to staff's, just different question IDs;
+  # only the attendance model differs (a single positive attend-list, handled by
+  # the specialNeeds step's `variant: child`, see stepConfig.yml).
+  staffChildren:
+    name:
+      sv: medföljande barn
+      en: staff children
+    provider: scoutnet
+    enrichWith:
+      specialNeeds:
+        name: jamboree26:specialNeeds
+        options:
+          questions:
+            # Attendance: single positive multiselect - vilka dagar barnet
+            # deltar (inverse of the staff absence model, se variant: child)
+            attendanceDays: "91058"
+            # Medicinskt behov av el vid boplatsen (barnform)
+            medicalElectricity: "88252"
+            # Specialkost: en checkbox per allergen/behov, plus fritext.
+            # Samma begrepp som funktionärsformuläret men andra fråge-ID:n.
+            dietGluten: "88338"
+            dietLaktos: "88262"
+            dietMjolkprotein: "88261"
+            dietAgg: "88264"
+            dietSoja: "88288"
+            dietFisk: "88331"
+            dietKraftdjur: "88330"
+            dietBlotdjur: "88313"
+            dietNotter: "89346"
+            dietSesam: "89347"
+            dietSelleri: "89348"
+            dietSenap: "89349"
+            dietSulfit: "89350"
+            dietNotkott: "89351"
+            dietFlaskkott: "89352"
+            dietHalal: "89353"
+            dietVegan: "89354"
+            dietLaktoOvoVegetarian: "89355"
+            dietPescetarian: "89356"
+            dietOther: "88270"
+    providerOptions:
+      projectId: 52716
+      feeIds:
+        - 32359
+      includeIndividuals: true
+      includeGroups: false
+      keys:
+        groups: ${SCOUTNET_STAFF_GROUPS_KEY}
+        participants: ${SCOUTNET_STAFF_PARTICIPANTS_KEY}
+        checkin: ${SCOUTNET_STAFF_CHECKIN_KEY}
+        questions: ${SCOUTNET_STAFF_QUESTIONS_KEY}

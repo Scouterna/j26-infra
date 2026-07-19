@@ -34,6 +34,7 @@ steps:
   - if: |
       ${{
         steps.identify.outputs.dataSource == 'staff' ||
+        steps.identify.outputs.dataSource == 'staffChildren' ||
         steps.identify.outputs.dataSource == 'stormote6_ordinary'
       }}
     # setActorAsSubject sets the session.subjects to the actorId from the session.
@@ -42,6 +43,7 @@ steps:
   - if: |
       ${{
         steps.identify.outputs.dataSource == 'staff' ||
+        steps.identify.outputs.dataSource == 'staffChildren' ||
         steps.identify.outputs.dataSource == 'stormote6_ordinary'
       }}
     # Self-checkin only: warns and asks for confirmation if this person is
@@ -77,6 +79,17 @@ steps:
     # registered. Placed after the compliance gate so a blocked person never
     # reaches it.
     uses: jamboree26:specialNeeds
+
+  - if: ${{ steps.identify.outputs.dataSource == 'staffChildren' }}
+    # Same informational special-needs screen for staff children. No compliance
+    # gate precedes it (children never face one - see the gate step above).
+    # Diet and medical are shown identically to staff; only attendance differs
+    # (a single positive attend-list), selected via `variant: child`. The child
+    # form's differing question IDs are mapped onto the shared field names in
+    # dataSourceConfig.yml (staffChildren.enrichWith.specialNeeds).
+    uses: jamboree26:specialNeeds
+    with:
+      variant: child
 
   - if: ${{ steps.identify.outputs.dataSource == 'groups' }}
     # selectSubjects will automatically use the actorId from the session to
