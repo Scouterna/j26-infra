@@ -4,3 +4,5 @@ metadata:
   name: j26-platsbank-config
 data:
   KEYCLOAK_DISCOVERY_URL: "https://app.dev.j26.se/auth/.well-known/openid-configuration"
+  # Tolgee translations (exposed to the client — must keep the J26_PUBLIC_ prefix)
+  J26_PUBLIC_TOLGEE_BACKEND_FETCH_PREFIX: "https://j26-translations.jamboree.se/dbc78bc1f5f74fadae0a49abfe745c57"
