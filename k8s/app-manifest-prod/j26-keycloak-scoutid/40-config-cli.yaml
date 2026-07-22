@@ -61,11 +61,13 @@ spec:
             # with unauthorized_client / "Invalid client credentials".
             - name: IMPORT_VARSUBSTITUTION_ENABLED
               value: "true"
-            # 01-realm.yaml declares ONLY the /j26-scoutid-sync parent group. The
-            # default managed-group policy ('full') would PRUNE every child group not
-            # listed in the config — wiping the hundreds of groups the j26-scoutid-sync
-            # CronJob creates under it. no-delete makes config-cli create/update the
-            # declared parent while leaving the sync-owned children untouched.
+            # 01-realm.yaml declares only top-level group STRUCTURE (the
+            # /j26-scoutid-sync parent + the standalone admin groups). The default
+            # managed-group policy ('full') would PRUNE every child group not listed
+            # in the config — wiping the hundreds of groups the j26-scoutid-sync
+            # CronJob creates under the parent. no-delete makes config-cli
+            # create/update the declared groups while leaving the sync-owned
+            # descendants untouched.
             - name: IMPORT_MANAGED_GROUP
               value: "no-delete"
             - name: IMPORT_FILES_LOCATIONS
