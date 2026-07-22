@@ -81,6 +81,17 @@ steps:
     uses: jamboree26:specialNeeds
     id: specialNeedsStaff
 
+  - if: ${{ steps.identify.outputs.dataSource == 'staff' }}
+    # Hands out an RFID tag to the checking-in staff member: the operator scans
+    # a tag (keyboard-wedge reader, ends with Enter) and it's bound to this
+    # person. Warns if they already have a tag; rejects a tag already bound to
+    # someone else. Staff-only (single-person self-check-in). The mapping lives
+    # under the jamboree26:rfid key in Participant.resultData - no
+    # feature-specific schema. Placed after the compliance gate so a blocked
+    # person never reaches it.
+    uses: jamboree26:rfid
+    id: rfidStaff
+
   - if: ${{ steps.identify.outputs.dataSource == 'staffChildren' }}
     # Same informational special-needs screen for staff children. No compliance
     # gate precedes it (children never face one - see the gate step above).
