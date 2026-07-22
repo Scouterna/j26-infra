@@ -108,6 +108,12 @@ dataSources:
             dietLaktoOvoVegetarian: "89355"
             dietPescetarian: "89356"
             dietOther: "88270"
+            # Uppdrag: funktion (dropdown), sektion och avdelning (fritext).
+            # Dropdown-svaret översätts automatiskt från val-ID till etikett
+            # via providerContext (samma mekanism som multiselect).
+            assignmentFunction: "88227"
+            assignmentSection: "114003"
+            assignmentAvdelning: "88253"
     providerOptions:
       projectId: 52716
       feeIds:
