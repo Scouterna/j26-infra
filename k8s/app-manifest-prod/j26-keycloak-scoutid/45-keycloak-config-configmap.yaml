@@ -76,11 +76,16 @@ data:
     # these children (dev had groups=577, villages=242) — on each realm import.
     # no-delete lets config-cli create/update the declared groups while leaving the
     # sync-owned descendants untouched.
+    # The standalone admin groups below the sync subtree (j26-checkin-admin,
+    # j26-cms-manager, j26-platsbank-admin, j26-reports) are NOT sync-owned — their
+    # membership is assigned by hand — but their STRUCTURE must still be declared here
+    # so config-cli has a group to resolve for the role assignments.
     # This file declares only the group STRUCTURE. The group-to-client-role ASSIGNMENTS
-    # (planning-staff → signupinfo/platsbank, j26-scoutid-sync → booking) live in
-    # 05-group-roles.yaml, which imports AFTER 04-clients.yaml so the referenced client
-    # roles already exist — a fresh-realm import fails here otherwise (the assignment
-    # references a role config-cli hasn't created yet). See 05-group-roles.yaml.
+    # (planning-staff → signupinfo/platsbank, j26-scoutid-sync → booking, and the admin
+    # groups above) live in 05-group-roles.yaml, which imports AFTER 04-clients.yaml so
+    # the referenced client roles already exist — a fresh-realm import fails here
+    # otherwise (the assignment references a role config-cli hasn't created yet). See
+    # 05-group-roles.yaml.
     groups:
       - name: j26-scoutid-sync
         subGroups:
@@ -91,6 +96,10 @@ data:
           - name: groups
           - name: villages
           - name: districts
+      - name: j26-checkin-admin
+      - name: j26-cms-manager
+      - name: j26-platsbank-admin
+      - name: j26-reports
 
     attributes:
       userProfileEnabled: "true"
@@ -605,10 +614,10 @@ data:
     # Modeling decided from a code scan of the j26-* repos:
     #   - Only j26-auth, j26-notifications, j26-group-import authenticate AS the client
     #     and need a secret.
-    #   - j26-platsbank and j26-signupinfo only VERIFY JWTs; they exist purely as role
-    #     containers so resource_access.<client>.roles can be assigned. No secret/flows.
-    #   - j26-booking is deferred; j26-screens/j26-auth-local and the dev test clients
-    #     are not ported.
+    #   - j26-platsbank, j26-signupinfo, j26-booking, j26-bracelet-checker, j26-screens,
+    #     j26-cms and j26-reports only VERIFY JWTs; they exist purely as role containers
+    #     so resource_access.<client>.roles can be assigned. No secret/flows.
+    #   - j26-auth-local and the dev test clients (scout-test-client) are not ported.
 
     clients:
       # Account console needs access to all scopes to show custom attributes
@@ -775,6 +784,32 @@ data:
         directAccessGrantsEnabled: false
         serviceAccountsEnabled: false
 
+      # j26-cms and j26-reports only VERIFY JWTs (jose jwtVerify against the shared
+      # j26-auth JWKS) and read resource_access.<client>.roles — confirmed from a code
+      # scan of both repos: no client_secret, no token/grant flow. Login is delegated
+      # to j26-auth; they just read its cookie. So they are role containers like
+      # j26-signupinfo, not confidential clients (the dev export's serviceAccount +
+      # secret were unused).
+      - clientId: j26-cms
+        name: j26-cms
+        description: "Role container for cms (JWT verification only)"
+        enabled: true
+        publicClient: false
+        standardFlowEnabled: false
+        implicitFlowEnabled: false
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: false
+
+      - clientId: j26-reports
+        name: j26-reports
+        description: "Role container for reports (JWT verification only)"
+        enabled: true
+        publicClient: false
+        standardFlowEnabled: false
+        implicitFlowEnabled: false
+        directAccessGrantsEnabled: false
+        serviceAccountsEnabled: false
+
     # Client roles live in this top-level roles.client block keyed by clientId, never
     # nested inside the clients list (keycloak-config-cli rejects a `roles` field on a
     # ClientRepresentation). Same pattern as the users block below. These are the role
@@ -806,6 +841,11 @@ data:
         j26-bracelet-checker:
           - name: "items:create"
           - name: "items:handout"
+        j26-cms:
+          - name: "editor"
+          - name: "admin"
+        j26-reports:
+          - name: "diet:read"
         j26-screens:
           - name: "devices:read"
             description: "List devices without modifying them"
@@ -855,14 +895,18 @@ data:
     # the assignments here, after 04, fixes the fresh-realm case.
     #
     # The group STRUCTURE (subgroup names, no-delete protection) is declared in
-    # 01-realm.yaml. This file re-declares the same structure only so the group
-    # paths resolve for the role attachment; IMPORT_MANAGED_GROUP=no-delete
+    # 01-realm.yaml — both the j26-scoutid-sync subtree and the standalone admin
+    # groups. This file re-declares the same structure only so the group paths
+    # resolve for the role attachment; IMPORT_MANAGED_GROUP=no-delete
     # (j26-infra .../40-config-cli.yaml) keeps the sync-owned descendant groups from
     # being pruned across this second group import.
     #
-    # planning-staff carries client roles (ported from dev) so planning staff get
-    # signupinfo summaries + platsbank booking access via resource_access.<client>.roles.
-    # j26-scoutid-sync (the parent) grants booking self-create to all synced users.
+    # The assignments grant access via resource_access.<client>.roles on members'
+    # tokens. j26-scoutid-sync (the parent) grants booking self-create to every
+    # synced user; staff/planning-staff/leader add booking + platsbank (+ signupinfo)
+    # roles. The standalone admin groups (j26-checkin-admin, j26-cms-manager,
+    # j26-platsbank-admin, j26-reports) carry elevated roles for hand-picked members
+    # and are NOT sync-owned — their membership is assigned by hand.
     realm: jamboree26
 
     groups:
@@ -873,18 +917,54 @@ data:
             - "bookings:self:create"
         subGroups:
           - name: staff
+            clientRoles:
+              j26-booking:
+                - "bookings:self:create"
+                - "bookings:read"
+              j26-platsbank:
+                - "requests:staff:book"
           - name: planning-staff
             clientRoles:
+              j26-booking:
+                - "activities:manage"
+                - "bookings:others:create"
               j26-signupinfo:
                 - "summaries:read"
               j26-platsbank:
                 - "requests:staff:book"
                 - "requests:create"
           - name: leader
+            clientRoles:
+              j26-booking:
+                - "bookings:self:create"
+              j26-platsbank:
+                - "requests:leader:book"
           - name: leader-staff
           - name: groups
           - name: villages
           - name: districts
+
+      - name: j26-checkin-admin
+        clientRoles:
+          j26-signupinfo:
+            - "all:read"
+            - "basic:read"
+            - "summaries:read"
+      - name: j26-cms-manager
+        clientRoles:
+          j26-cms:
+            - "editor"
+            - "admin"
+      - name: j26-platsbank-admin
+        clientRoles:
+          j26-platsbank:
+            - "requests:staff:book"
+            - "requests:create"
+            - "requests:leader:book"
+      - name: j26-reports
+        clientRoles:
+          j26-reports:
+            - "diet:read"
 kind: ConfigMap
 metadata:
   creationTimestamp: null
