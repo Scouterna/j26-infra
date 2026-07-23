@@ -35,3 +35,4 @@ configMapGenerator:
     behavior: merge
     literals:
       - SERVER_URL=https://app.jamboree.se
+      - KEYCLOAK_DISCOVERY_URL=https://app.jamboree.se/auth/.well-known/openid-configuration
