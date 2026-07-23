@@ -15,6 +15,9 @@ dataSources:
       specialNeeds:
         name: jamboree26:specialNeeds
         options:
+          # Adult (funktionär) attendance model: drives the computed
+          # firstAttendingDay export column (se plugins/jamboree26/src/specialNeeds/attendance.ts)
+          variant: adult
           questions:
             # Vilka hela perioder personen önskar delta i (multiselect: Förläger/Lägerperiod/Efterläger) - se plugins/jamboree26/src/specialNeeds
             periodsAttending: "90174"
@@ -86,6 +89,9 @@ dataSources:
       specialNeeds:
         name: jamboree26:specialNeeds
         options:
+          # Child (medföljande barn) attendance model: drives the computed
+          # firstAttendingDay export column (se plugins/jamboree26/src/specialNeeds/attendance.ts)
+          variant: child
           questions:
             # Attendance: single positive multiselect - vilka dagar barnet
             # deltar (inverse of the staff absence model, se variant: child)
