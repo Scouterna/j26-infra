@@ -39,14 +39,3 @@ configMapGenerator:
     behavior: merge
     literals:
       - J26_PUBLIC_PAYLOAD_API_URL=https://app.jamboree.se/_services/cms/api
-      # TRIM-AND-GROW: j26-app goes to prod first, before any backend service.
-      # Start with only its own app-config; append each backend's entry to this
-      # list as that backend is promoted to prod. Dev's full list (for reference):
-      #   /app-config.json,/_services/signupinfo/app-config,
-      #   /_services/platsbank/app-config.json,/_services/notification-client/app-config,
-      #   /_services/booking/api/app-config,/_services/map/app-config.json,
-      #   /_services/photo-permission/app-config
-      # Promoted to prod so far: notification-client, signupinfo, map, photo-permission, platsbank,
-      # booking. (screens, cms, scoutin-2 are NOT here — they expose no app-config; the dev
-      # list's screens-like entry is /_services/interactive-screens/api/app-config, a different app.)
-      - J26_PUBLIC_APP_CONFIGS=/app-config.json,/_services/notification-client/app-config,/_services/signupinfo/app-config,/_services/map/app-config.json,/_services/photo-permission/app-config,/_services/platsbank/api/app-config,/_services/booking/api/app-config
