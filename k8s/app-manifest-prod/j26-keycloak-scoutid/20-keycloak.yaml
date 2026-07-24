@@ -52,7 +52,7 @@ spec:
               done
       containers:
         - name: keycloak
-          image: ghcr.io/scouterna/scoutid-keycloak:sha-b08ab09
+          image: ghcr.io/scouterna/scoutid-keycloak:sha-e2b6218
           args: ["start", "--optimized"]
           env:
             # --- Database (external Azure Postgres, kv-j26apps-shared-sdc) ---

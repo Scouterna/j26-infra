@@ -10,11 +10,13 @@ kind: Kustomization
 # a manifest were to omit it.
 namespace: j26-prod
 
+# config-cli is intentionally NOT deployed: prod Keycloak is GUI-managed (team
+# decision 2026-07-22). Re-running the declarative import would overwrite admin-console
+# edits. 40-config-cli.yaml + 45-keycloak-config-configmap.yaml are kept in the repo
+# (dormant) so the config can be restored if we ever revert to declarative management.
 resources:
   - 15-secret-provider-class.yaml
   - 20-keycloak.yaml
   - 30-ingressroute.yaml
-  - 40-config-cli.yaml
-  - 45-keycloak-config-configmap.yaml
   - 50-servicemonitor.yaml
   - 55-ensure-master-admin-job.yaml
