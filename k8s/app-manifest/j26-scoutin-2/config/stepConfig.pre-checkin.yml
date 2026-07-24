@@ -21,7 +21,7 @@ steps:
         en: Identify yourself
       description:
         sv: Ange ditt person- eller medlemsnummer för att komma igång.
-        en: Enter your social security or membership number to get started.
+        en: Enter your social security or membership number to get started. If you don't know this information, you can perform the entire check-in process on site at the info tent at the Heart.
       hideCallout: true
       hideScannerArrow: true
       manualEntryLabel:
