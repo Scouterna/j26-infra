@@ -10,7 +10,7 @@ resources:
 
 images:
   - name: ghcr.io/scouterna/j26-map
-    newTag: "0.3.0"
+    newTag: "1.0.0"
 
 patches:
   # Replace the base nginx Ingress with a Traefik IngressRoute (see ingressroute.yaml).
