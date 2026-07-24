@@ -1,4 +1,11 @@
+# Pre-checkin runs in a browser, opened from a link sent to the kår. Text is
+# authored per language as `{ sv, en }` maps; the flow engine collapses those to
+# a single string for the language the user picks in the first step.
 steps:
+  # Must stay first: every step after it gets its text resolved in the chosen
+  # language. The screen itself is bilingual, so it needs no text config.
+  - uses: base:selectLanguage
+
   - uses: base:identify
     id: identify
     with:
@@ -9,11 +16,17 @@ steps:
       # Pre-checkin runs in a browser without a card reader, so the start screen
       # must not mention scanning. Manual entry is the only path here, hence the
       # larger button and the hidden scanner callout/arrow.
-      title: Identifiera dig
-      description: Ange ditt person- eller medlemsnummer för att komma igång.
+      title:
+        sv: Identifiera dig
+        en: Identify yourself
+      description:
+        sv: Ange ditt person- eller medlemsnummer för att komma igång.
+        en: Enter your social security or membership number to get started.
       hideCallout: true
       hideScannerArrow: true
-      manualEntryLabel: Ange person- eller medlemsnummer
+      manualEntryLabel:
+        sv: Ange person- eller medlemsnummer
+        en: Enter social security or membership number
       largeManualEntryButton: true
 
   - if: |
@@ -24,8 +37,12 @@ steps:
       }}
     uses: base:block
     with:
-      title: "Du kan inte checka in"
-      message: "Endast ledare kan checka in deltagare."
+      title:
+        sv: "Du kan inte checka in"
+        en: "You cannot check in"
+      message:
+        sv: "Endast ledare kan checka in deltagare."
+        en: "Only leaders can check in participants."
 
   - uses: base:deduplicateSession
     with:
@@ -33,7 +50,9 @@ steps:
 
   - uses: base:selectSubjects
     with:
-      description: Välj vilka du vill checka in. Avmarkera de som inte är på plats.
+      description:
+        sv: Välj vilka du vill checka in. Avmarkera de som inte är på plats.
+        en: Select who you want to check in. Deselect anyone who isn't here.
 
   # Lists the selected subjects that are "ledarfunktionärer" (a distinct fee,
   # mapped to the `leaderstaff` subGroup in dataSourceConfig.yml) with an
@@ -42,8 +61,12 @@ steps:
   - uses: base:filterSubjects
     with:
       filter: "participant.subGroup == 'leaderstaff'"
-      title: "Ledarfunktionärer"
-      message: "Följande personer är anmälda som ledarfunktionärer. Ledarfunktionärer bor och äter med er kår, men arbetar som funktionärer på lägret och deltar alltså inte på programpass med kåren. Kontrollera noggrant att alla personer i listan är medvetna om detta, och att ingen ledarfunktionär saknas i listan. Om något inte stämmer fortsätter ni med incheckningen och meddelar oss när ni checkar in på plats."
+      title:
+        sv: "Ledarfunktionärer"
+        en: "Leader staff"
+      message:
+        sv: "Följande personer är anmälda som ledarfunktionärer. Ledarfunktionärer bor och äter med er kår, men arbetar som funktionärer på lägret och deltar alltså inte på programpass med kåren. Kontrollera noggrant att alla personer i listan är medvetna om detta, och att ingen ledarfunktionär saknas i listan. Om något inte stämmer fortsätter ni med incheckningen och meddelar oss när ni checkar in på plats."
+        en: "The following people are registered as leader staff. Leader staff sleep and eat with your scout group, but work as staff at the camp and therefore do not take part in the group's programme activities. Check carefully that everyone in the list is aware of this, and that no leader staff is missing from the list. If something is not right, continue with the check-in and let us know when you check in on site."
       whenEmpty: skip
 
   # Informational (never blocks): shows the checking-in leader which of the
@@ -63,13 +86,21 @@ steps:
       safeFromHarmValidYears: 3
       criminalRecordExtractValidYears: 3
       checkDate: "2026-08-01"
-      title: "Ledare som saknar krav"
-      message: "Följande ledare har inte giltigt Trygga Möten och/eller registerutdrag registrerat i Scoutnet. Ni som kår ansvarar själva för att säkerställa att samtliga ledare har uppvisat giltigt Trygga Möten-intyg samt utdrag ut polisens belastningsregister."
+      title:
+        sv: "Ledare som saknar krav"
+        en: "Leaders missing requirements"
+      message:
+        sv: "Följande ledare har inte giltigt Trygga Möten och/eller registerutdrag registrerat i Scoutnet. Ni som kår ansvarar själva för att säkerställa att samtliga ledare har uppvisat giltigt Trygga Möten-intyg samt utdrag ut polisens belastningsregister."
+        en: "The following leaders do not have a valid Safe from Harm (Trygga Möten) certificate and/or criminal record extract registered in Scoutnet. Your scout group is itself responsible for making sure that every leader has presented a valid Safe from Harm certificate and an extract from the Swedish police criminal records."
 
   - uses: base:markPreliminaryCheckedIn
     required: true
 
   - uses: base:message
     with:
-      title: Tack!
-      message: Nu är du klar för tillfället. Glöm inte att skicka en ledare med lite koll till infotältet på Hjärtat för att slutföra incheckningen och hämta er kårpåse med märken och annat kul när ni väl är på lägerområdet!
+      title:
+        sv: Tack!
+        en: Thank you!
+      message:
+        sv: Nu är du klar för tillfället. Glöm inte att skicka en ledare med lite koll till infotältet på Hjärtat för att slutföra incheckningen och hämta er kårpåse med märken och annat kul när ni väl är på lägerområdet!
+        en: You are done for now. Once you are on the camp site, don't forget to send a leader who is up to speed to the info tent at Hjärtat to complete the check-in and pick up your group bag with badges and other fun things!
