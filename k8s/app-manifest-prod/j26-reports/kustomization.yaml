@@ -1,0 +1,42 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Prod overlay for j26-reports (Scoutnet reporting backend, no DB — only KV
+# Scoutnet API keys). References the dev package as a base and patches only what
+# differs in prod: namespace, image tag, ingress (Traefik), the KV objects the
+# SecretProviderClass pulls, and the Keycloak discovery host.
+namespace: j26-prod
+
+resources:
+  - ../../app-manifest/j26-reports
+  - ingressroute.yaml
+
+# Pinned production image tag — bumped by an explicit commit, never by the
+# image updater (see prod-apps/j26-reports.yaml).
+images:
+  - name: ghcr.io/scouterna/j26-reports
+    newTag: "1.0.0"
+
+patches:
+  # Replace the base nginx Ingress with a Traefik IngressRoute (see ingressroute.yaml).
+  - patch: |-
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: j26-reports
+      $patch: delete
+  # Repoint the SecretProviderClass at the prod KV objects.
+  - path: secret-provider-class-patch.yaml
+    target:
+      kind: SecretProviderClass
+      name: j26-reports-kv-csi
+
+# Override only the prod-specific ConfigMap values; all other keys (Scoutnet
+# project IDs, cache TTL) are inherited from the base ConfigMap unchanged.
+# Merging by name into the existing (non-generated) ConfigMap does not add a
+# hash suffix, so the Deployment's envFrom.configMapRef.name stays valid.
+configMapGenerator:
+  - name: j26-reports-config
+    behavior: merge
+    literals:
+      - KEYCLOAK_DISCOVERY_URL=https://app.jamboree.se/auth/.well-known/openid-configuration
