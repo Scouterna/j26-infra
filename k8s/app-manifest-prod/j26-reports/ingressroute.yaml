@@ -1,0 +1,18 @@
+# Prod route for j26-reports. No StripPrefix — the app keeps its base path
+# (dev's rewrite-target is /_services/reports/$2, i.e. the prefix is preserved).
+# Reuses the app.jamboree.se TLS secret.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: j26-reports
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`app.jamboree.se`) && (Path(`/_services/reports`) || PathPrefix(`/_services/reports/`))
+      services:
+        - name: j26-reports
+          port: 80
+  tls:
+    secretName: j26-app-tls-secret

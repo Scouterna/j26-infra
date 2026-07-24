@@ -1,0 +1,18 @@
+# Prod route for j26-bracelet-checker. No StripPrefix — the app keeps its base
+# path (dev's rewrite-target is /_services/bracelet-checker/$2, i.e. the prefix
+# is preserved). Reuses the app.jamboree.se TLS secret.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: j26-bracelet-checker
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`app.jamboree.se`) && (Path(`/_services/bracelet-checker`) || PathPrefix(`/_services/bracelet-checker/`))
+      services:
+        - name: j26-bracelet-checker
+          port: 80
+  tls:
+    secretName: j26-app-tls-secret

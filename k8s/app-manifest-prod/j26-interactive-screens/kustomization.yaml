@@ -1,0 +1,44 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Prod overlay for j26-interactive-screens. References the dev package as a base
+# and patches only what differs in prod: namespace, image tag, ingress (Traefik),
+# the OIDC host, and the database wiring. Unlike dev (which composes DATABASE_URL
+# from an Azure Service Connector secret), prod sources DATABASE_URL from a KV
+# object via CSI — matching cms/booking/platsbank/scoutin-2.
+namespace: j26-prod
+
+resources:
+  - ../../app-manifest/j26-interactive-screens
+  - ingressroute.yaml
+  # New in prod: the base has no SecretProviderClass (dev used a Service Connector).
+  - secret-provider-class.yaml
+
+# Pinned production image tag — bumped by an explicit commit, never by the
+# image updater (see prod-apps/j26-interactive-screens.yaml).
+images:
+  - name: ghcr.io/scouterna/j26-interactive-screens-v2
+    newTag: "1.0.0"
+
+patches:
+  # Replace the base nginx Ingress with a Traefik IngressRoute (see ingressroute.yaml).
+  - patch: |-
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: j26-interactive-screens
+      $patch: delete
+  # Swap the dev Service Connector DB wiring for a CSI-injected DATABASE_URL on
+  # both the migrate initContainer and the app container.
+  - path: deployment-patch.yaml
+    target:
+      kind: Deployment
+      name: j26-interactive-screens
+
+# Override only the prod-specific ConfigMap values; AUTH_COOKIE_NAME is inherited
+# from the base ConfigMap unchanged.
+configMapGenerator:
+  - name: j26-interactive-screens-config
+    behavior: merge
+    literals:
+      - OIDC_CONFIG_URL=https://app.jamboree.se/auth/.well-known/openid-configuration

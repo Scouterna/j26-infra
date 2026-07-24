@@ -1,0 +1,54 @@
+# Prod: replace the dev Service Connector DB wiring with a CSI-injected DATABASE_URL.
+# For both the migrate initContainer and the app container:
+#   - drop the sc-postgresqlfbac0-secret secretRef from envFrom (that Service
+#     Connector secret does not exist in the prod namespace)
+#   - source DATABASE_URL from the CSI secret instead of composing it from parts
+#   - mount the CSI secrets store (the mount is what triggers the secret to sync)
+# Finally, add the CSI volume to the pod.
+- op: replace
+  path: /spec/template/spec/initContainers/0/envFrom
+  value:
+    - configMapRef:
+        name: j26-interactive-screens-config
+- op: replace
+  path: /spec/template/spec/initContainers/0/env
+  value:
+    - name: DATABASE_URL
+      valueFrom:
+        secretKeyRef:
+          name: j26-interactive-screens-secrets
+          key: DATABASE_URL
+- op: add
+  path: /spec/template/spec/initContainers/0/volumeMounts
+  value:
+    - name: secrets-store
+      mountPath: /mnt/secrets-store
+      readOnly: true
+- op: replace
+  path: /spec/template/spec/containers/0/envFrom
+  value:
+    - configMapRef:
+        name: j26-interactive-screens-config
+- op: replace
+  path: /spec/template/spec/containers/0/env
+  value:
+    - name: DATABASE_URL
+      valueFrom:
+        secretKeyRef:
+          name: j26-interactive-screens-secrets
+          key: DATABASE_URL
+- op: add
+  path: /spec/template/spec/containers/0/volumeMounts
+  value:
+    - name: secrets-store
+      mountPath: /mnt/secrets-store
+      readOnly: true
+- op: add
+  path: /spec/template/spec/volumes
+  value:
+    - name: secrets-store
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: j26-interactive-screens-kv-csi
