@@ -15,7 +15,8 @@ steps:
   - if: |
       ${{
         steps.identify.outputs.dataSource == 'groups' &&
-        steps.identify.outputs.participant.subGroup != 'leader'
+        steps.identify.outputs.participant.subGroup != 'leader' &&
+        steps.identify.outputs.participant.subGroup != 'leaderstaff'
       }}
     uses: base:block
     with:
@@ -28,14 +29,11 @@ steps:
   # old session is deleted. If the user chooses to pick up where they left off,
   # the current flow is aborted and the old session is resumed.
   - uses: base:deduplicateSession
-    with:
-      force: ${{ steps.identify.outputs.dataSource == 'stormote6_ordinary' && 'new' || null }}
 
   - if: |
       ${{
         steps.identify.outputs.dataSource == 'staff' ||
-        steps.identify.outputs.dataSource == 'staffChildren' ||
-        steps.identify.outputs.dataSource == 'stormote6_ordinary'
+        steps.identify.outputs.dataSource == 'staffChildren'
       }}
     # setActorAsSubject sets the session.subjects to the actorId from the session.
     uses: base:setActorAsSubject
@@ -43,8 +41,7 @@ steps:
   - if: |
       ${{
         steps.identify.outputs.dataSource == 'staff' ||
-        steps.identify.outputs.dataSource == 'staffChildren' ||
-        steps.identify.outputs.dataSource == 'stormote6_ordinary'
+        steps.identify.outputs.dataSource == 'staffChildren'
       }}
     # Self-checkin only: warns and asks for confirmation if this person is
     # already checked in. Not used for the groups flow, where a leader
@@ -60,6 +57,7 @@ steps:
     # the staff check-in flow design - a failure should abort cheaply, not
     # after collecting/showing other info.
     uses: scoutnet:complianceGate
+    id: complianceGateStaff
     with:
       # Trygga Möten is valid for 3 years from completion. Set to null to
       # disable the expiry check.
@@ -109,6 +107,17 @@ steps:
     # determine which members they can select, so we don't need to pass it
     # explicitly here.
     uses: base:selectSubjects
+
+  - if: ${{ steps.identify.outputs.dataSource == 'groups' }}
+    # Lists the selected subjects that are "ledarfunktionärer" (a distinct fee,
+    # mapped to the `leaderstaff` subGroup in dataSourceConfig.yml) with an
+    # informational message. `filter` is a bare expression (no ${{ }}) evaluated
+    # per subject against `{ participant }`.
+    uses: base:filterSubjects
+    with:
+      filter: "participant.subGroup == 'leaderstaff'"
+      title: "Ledarfunktionärer"
+      message: "Följande personer är anmälda som ledarfunktionärer. Ledarfunktionärer bor och äter med er kår, men arbetar som funktionärer på lägret och deltar alltså inte på programpass med kåren. Kontrollera noggrant att alla personer i listan är medvetna om detta, och att ingen ledarfunktionär saknas i listan. Om något inte stämmer fortsätter ni med incheckningen och meddelar oss när ni checkar in på plats."
 
   - uses: base:markConfirmedCheckedIn
     required: true

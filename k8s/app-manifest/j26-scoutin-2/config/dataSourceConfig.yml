@@ -1,4 +1,47 @@
 dataSources:
+  groups:
+    name:
+      sv: ledare i din kår
+      en: leader in your scout group
+    provider: scoutnet
+    # Compliance data for the groups complianceGate report (see stepConfig.yml /
+    # stepConfig.pre-checkin.yml). Reads pc_courses (Trygga Möten) and pc_details
+    # (registerutdrag) off the raw Scoutnet participant record; without these the
+    # gate has no metadata to read and every leader is reported as non-compliant.
+    enrichWith:
+      safeFromHarm: scoutnet:safeFromHarm
+      criminalRecordExtract: scoutnet:criminalRecordExtract
+    subGroups:
+      leader:
+        name:
+          sv: Ledare
+          en: Leader
+      leaderstaff:
+        name:
+          sv: Ledarfunktionär
+          en: Leader functionary
+    providerOptions:
+      projectId: 52710
+      includeIndividuals: false
+      includeGroups: true
+      subGroupConditions:
+        leader:
+          condition: |
+            ${{
+              participant.fee_id == 32341 || # Ledare
+              participant.fee_id == 32349    # Ledare kortvecka (ons-lör)
+            }}
+        leaderstaff:
+          condition: |
+            ${{
+              participant.fee_id == 32348 # Ledarfunktionär
+            }}
+      keys:
+        groups: ${SCOUTNET_GROUPS_GROUPS_KEY}
+        participants: ${SCOUTNET_GROUPS_PARTICIPANTS_KEY}
+        checkin: ${SCOUTNET_GROUPS_CHECKIN_KEY}
+        questions: ${SCOUTNET_GROUPS_QUESTIONS_KEY}
+
   staff:
     name:
       sv: funktionär

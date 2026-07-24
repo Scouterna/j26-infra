@@ -6,11 +6,21 @@ steps:
       skipConfirmation: true
       dataSources:
         - groups
+      # Pre-checkin runs in a browser without a card reader, so the start screen
+      # must not mention scanning. Manual entry is the only path here, hence the
+      # larger button and the hidden scanner callout/arrow.
+      title: Identifiera dig
+      description: Ange ditt person- eller medlemsnummer för att komma igång.
+      hideCallout: true
+      hideScannerArrow: true
+      manualEntryLabel: Ange person- eller medlemsnummer
+      largeManualEntryButton: true
 
   - if: |
       ${{
         steps.identify.outputs.dataSource == 'groups' &&
-        steps.identify.outputs.participant.subGroup != 'leader'
+        steps.identify.outputs.participant.subGroup != 'leader' &&
+        steps.identify.outputs.participant.subGroup != 'leaderstaff'
       }}
     uses: base:block
     with:
@@ -19,16 +29,47 @@ steps:
 
   - uses: base:deduplicateSession
     with:
-      force: new
+      force: resume
 
   - uses: base:selectSubjects
+    with:
+      description: Välj vilka du vill checka in. Avmarkera de som inte är på plats.
+
+  # Lists the selected subjects that are "ledarfunktionärer" (a distinct fee,
+  # mapped to the `leaderstaff` subGroup in dataSourceConfig.yml) with an
+  # informational message. `filter` is a bare expression (no ${{ }}) evaluated
+  # per subject against `{ participant }`.
+  - uses: base:filterSubjects
+    with:
+      filter: "participant.subGroup == 'leaderstaff'"
+      title: "Ledarfunktionärer"
+      message: "Följande personer är anmälda som ledarfunktionärer. Ledarfunktionärer bor och äter med er kår, men arbetar som funktionärer på lägret och deltar alltså inte på programpass med kåren. Kontrollera noggrant att alla personer i listan är medvetna om detta, och att ingen ledarfunktionär saknas i listan. Om något inte stämmer fortsätter ni med incheckningen och meddelar oss när ni checkar in på plats."
+      whenEmpty: skip
+
+  # Informational (never blocks): shows the checking-in leader which of the
+  # selected leaders have not completed Safe from Harm (Trygga Möten) or shown a
+  # criminal record extract (registerutdrag). `mode: multiple` renders the
+  # per-person report; `block: false` lets them continue regardless. Only leaders
+  # are checked (`subGroups`), not the scouts a leader also selects - subjects
+  # outside these subgroups are ignored entirely. Validity settings mirror the
+  # staff complianceGate so "compliant" means the same thing across flows.
+  - uses: scoutnet:complianceGate
+    with:
+      mode: multiple
+      block: false
+      subGroups:
+        - leader
+        - leaderstaff
+      safeFromHarmValidYears: 3
+      criminalRecordExtractValidYears: 3
+      checkDate: "2026-08-01"
+      title: "Ledare som saknar krav"
+      message: "Följande ledare har inte giltigt Trygga Möten och/eller registerutdrag registrerat i Scoutnet. Ni som kår ansvarar själva för att säkerställa att samtliga ledare har uppvisat giltigt Trygga Möten-intyg samt utdrag ut polisens belastningsregister."
 
   - uses: base:markPreliminaryCheckedIn
     required: true
 
-  - uses: scoutnet:checkLeaderRequirements
-
   - uses: base:message
     with:
-      title: Klar för tillfället!
-      message: Nu är du klar för tillfället. Glöm inte slutföra incheckningen när ni väl är på lägerområdet!
+      title: Tack!
+      message: Nu är du klar för tillfället. Glöm inte att skicka en ledare med lite koll till infotältet på Hjärtat för att slutföra incheckningen och hämta er kårpåse med märken och annat kul när ni väl är på lägerområdet!
