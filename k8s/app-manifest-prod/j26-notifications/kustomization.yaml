@@ -42,4 +42,4 @@ configMapGenerator:
     behavior: merge
     literals:
       - KC_API=https://admin.j26.scoutid.se
-      - USER_SYNC_INTERVAL_MINUTES=120
+      - USER_SYNC_INTERVAL_MINUTES=360
