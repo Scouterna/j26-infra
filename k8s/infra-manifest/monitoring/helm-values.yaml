@@ -59,7 +59,7 @@ grafana:
         clientId: "f7ce7fad-4d2e-465a-8fed-6a09605dbcb3"
         subscriptionId: "97410996-3a4a-464b-8ba2-41b5dcda2d75"
       secureJsonData:
-        clientSecret: "$__env{AZURE_CLIENT_SECRET}"
+        clientSecret: "$AZURE_CLIENT_SECRET"
 
   envFromSecret: grafana-azure-monitor-secrets
 
