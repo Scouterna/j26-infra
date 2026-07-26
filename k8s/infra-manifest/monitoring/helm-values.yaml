@@ -34,6 +34,30 @@ grafana:
       url: http://loki:3100
       jsonData:
         maxLines: 1000
+    - name: Azure Monitor
+      type: grafana-azure-monitor-datasource
+      access: proxy
+      editable: false
+      jsonData:
+        azureAuthType: clientsecret
+        cloudName: azuremonitor
+        tenantId: "317a47ba-fd32-41b8-8ebe-310a1adc9863"
+        clientId: "f7ce7fad-4d2e-465a-8fed-6a09605dbcb3"
+        subscriptionId: "97410996-3a4a-464b-8ba2-41b5dcda2d75"
+      secureJsonData:
+        clientSecret: "$__env{AZURE_CLIENT_SECRET}"
+
+  envFromSecret: grafana-azure-monitor-secrets
+
+  extraSecretMounts:
+    - name: grafana-azure-monitor-kv-csi
+      mountPath: /mnt/secrets-store
+      readOnly: true
+      csi:
+        driver: secrets-store.csi.k8s.io
+        readOnly: true
+        volumeAttributes:
+          secretProviderClass: grafana-azure-monitor-kv-csi
 
 prometheus:
   prometheusSpec:
