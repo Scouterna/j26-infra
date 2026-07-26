@@ -44,19 +44,27 @@ images:
 
 # Keep the dev sync CronJobs OFF the prod node pool (userpool): soft-prefer the
 # original 'agentpool' pool. Preference only, so jobs still run if agentpool is busy.
+# Strategic-merge so any existing/future affinity block is preserved, not replaced.
 patches:
   - target:
       kind: CronJob
     patch: |-
-      - op: add
-        path: /spec/jobTemplate/spec/template/spec/affinity
-        value:
-          nodeAffinity:
-            preferredDuringSchedulingIgnoredDuringExecution:
-              - weight: 100
-                preference:
-                  matchExpressions:
-                    - key: agentpool
-                      operator: In
-                      values:
-                        - agentpool
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: not-used
+      spec:
+        jobTemplate:
+          spec:
+            template:
+              spec:
+                affinity:
+                  nodeAffinity:
+                    preferredDuringSchedulingIgnoredDuringExecution:
+                      - weight: 100
+                        preference:
+                          matchExpressions:
+                            - key: agentpool
+                              operator: In
+                              values:
+                                - agentpool
