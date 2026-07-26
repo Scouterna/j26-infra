@@ -41,3 +41,22 @@ configMapGenerator:
 images:
   - name: ghcr.io/scouterna/j26-scoutid-sync
     newTag: sha-7f9c228
+
+# Keep the dev sync CronJobs OFF the prod node pool (userpool): soft-prefer the
+# original 'agentpool' pool. Preference only, so jobs still run if agentpool is busy.
+patches:
+  - target:
+      kind: CronJob
+    patch: |-
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/affinity
+        value:
+          nodeAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                preference:
+                  matchExpressions:
+                    - key: agentpool
+                      operator: In
+                      values:
+                        - agentpool
