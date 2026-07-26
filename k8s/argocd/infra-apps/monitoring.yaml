@@ -14,12 +14,10 @@ spec:
     name: in-cluster
     namespace: monitoring
 
-  source:
-    repoURL: https://github.com/Scouterna/j26-infra.git
-    targetRevision: main
-    path: k8s/infra-manifest/monitoring
-
   sources:
+    - repoURL: https://github.com/Scouterna/j26-infra.git
+      targetRevision: main
+      path: k8s/infra-manifest/monitoring
     - repoURL: ghcr.io/prometheus-community/charts
       chart: kube-prometheus-stack
       targetRevision: "80.2.2"
