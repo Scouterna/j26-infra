@@ -1,5 +1,19 @@
 grafana:
 
+  # Soft-prefer the original 'agentpool' node pool (roomier RAM) so the memory-heavy
+  # monitoring stack stays off the prod 'userpool' node. Preference only, so it still
+  # schedules if agentpool is full. Both nodes share a zone, so the PVC alone doesn't pin it.
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: agentpool
+                operator: In
+                values:
+                  - agentpool
+
   admin:
     existingSecret: grafana-admin
     userKey: admin-user
@@ -37,6 +51,17 @@ grafana:
 
 prometheus:
   prometheusSpec:
+    # Soft-prefer 'agentpool' — keep the memory-heavy monitoring stack off the prod node.
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+                - key: agentpool
+                  operator: In
+                  values:
+                    - agentpool
     retention: 90d
     retentionSize: 50GB
     storageSpec:
@@ -50,6 +75,17 @@ prometheus:
 
 alertmanager:
   alertmanagerSpec:
+    # Soft-prefer 'agentpool' — keep the memory-heavy monitoring stack off the prod node.
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+                - key: agentpool
+                  operator: In
+                  values:
+                    - agentpool
     storage:
       volumeClaimTemplate:
         spec:
