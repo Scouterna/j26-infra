@@ -14,22 +14,29 @@ configMapGenerator:
       - config/stepConfig.yml
       - config/stepConfig.pre-checkin.yml
       - config/dataSourceConfig.yml
+
 # Keep dev workloads OFF the prod node pool (userpool) during camp: soft-prefer the
 # original 'agentpool' pool so dev can't compete with prod for CPU. Preference only
-# (not a hard rule) so pods still schedule if agentpool is full.
+# (not a hard rule) so pods still schedule if agentpool is full. Strategic-merge so
+# an existing/future affinity block (e.g. podAntiAffinity) is preserved, not replaced.
 patches:
   - target:
       kind: Deployment
     patch: |-
-      - op: add
-        path: /spec/template/spec/affinity
-        value:
-          nodeAffinity:
-            preferredDuringSchedulingIgnoredDuringExecution:
-              - weight: 100
-                preference:
-                  matchExpressions:
-                    - key: agentpool
-                      operator: In
-                      values:
-                        - agentpool
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: not-used
+      spec:
+        template:
+          spec:
+            affinity:
+              nodeAffinity:
+                preferredDuringSchedulingIgnoredDuringExecution:
+                  - weight: 100
+                    preference:
+                      matchExpressions:
+                        - key: agentpool
+                          operator: In
+                          values:
+                            - agentpool
