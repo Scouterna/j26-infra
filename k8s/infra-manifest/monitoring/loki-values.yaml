@@ -27,6 +27,18 @@ loki:
 
 singleBinary:
   replicas: 1
+  # Soft-prefer the original 'agentpool' node pool so Loki stays off the prod 'userpool'
+  # node. Preference only; both nodes share a zone so the PVC alone doesn't pin it.
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: agentpool
+                operator: In
+                values:
+                  - agentpool
   persistence:
     enabled: true
     size: 32Gi
