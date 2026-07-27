@@ -21,7 +21,7 @@ resources:
 # enabling the prod Application, or prod will fail to pull the image.
 images:
   - name: ghcr.io/scouterna/j26-tags
-    newTag: "1.0.0"
+    newTag: "1.0.1"
 
 patches:
   # Replace the base nginx Ingress with a Traefik IngressRoute (see ingressroute.yaml).
