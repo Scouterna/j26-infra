@@ -54,6 +54,9 @@ metrics:
   prometheus:
     # Per-router labels give per-IngressRoute breakdowns on the dashboard.
     addRoutersLabels: true
+    # Finer latency buckets than the chart default (0.1/0.3/1.2/5s), so P50/P95/P99
+    # are accurate instead of interpolated across wide gaps.
+    buckets: "0.05,0.1,0.25,0.5,0.75,1,2.5,5"
     # Dedicated metrics Service + ServiceMonitor so kube-prometheus-stack scrapes us.
     service:
       enabled: true
