@@ -50,6 +50,19 @@ logs:
   access:
     enabled: true
 
+metrics:
+  prometheus:
+    # Per-router labels give per-IngressRoute breakdowns on the dashboard.
+    addRoutersLabels: true
+    # Dedicated metrics Service + ServiceMonitor so kube-prometheus-stack scrapes us.
+    service:
+      enabled: true
+    serviceMonitor:
+      enabled: true
+      # Prometheus only selects ServiceMonitors carrying this release label.
+      additionalLabels:
+        release: kps
+
 extraObjects:
   - apiVersion: cert-manager.io/v1
     kind: ClusterIssuer
