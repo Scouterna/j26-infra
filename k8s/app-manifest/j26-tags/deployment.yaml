@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: j26-tags
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: j26-tags
+  template:
+    metadata:
+      labels:
+        app: j26-tags
+    spec:
+      initContainers:
+        - name: j26-tags-init-migrate
+          image: ghcr.io/scouterna/j26-tags:latest
+          command: ["node_modules/.bin/prisma", "migrate", "deploy"]
+          envFrom:
+            - configMapRef:
+                name: j26-tags-config
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: j26-tags-secrets
+                  key: DATABASE_URL
+          volumeMounts:
+            - name: secrets-store
+              mountPath: /mnt/secrets-store
+              readOnly: true
+      containers:
+        - name: j26-tags-app
+          image: ghcr.io/scouterna/j26-tags:latest
+          ports:
+            - containerPort: 3002
+          envFrom:
+            - configMapRef:
+                name: j26-tags-config
+            # Supplies DATABASE_URL and TAGS_API_KEY.
+            - secretRef:
+                name: j26-tags-secrets
+          volumeMounts:
+            - name: secrets-store
+              mountPath: /mnt/secrets-store
+              readOnly: true
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: j26-tags-kv-csi

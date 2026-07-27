@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: j26-tags
+  annotations:
+    # The app is built for its base path, so keep the prefix rather than stripping it.
+    nginx.ingress.kubernetes.io/rewrite-target: /_services/tags/$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: app.dev.j26.se
+      http:
+        paths:
+          - path: /_services/tags(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: j26-tags
+                port:
+                  number: 80

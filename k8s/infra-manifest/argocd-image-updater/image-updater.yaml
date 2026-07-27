@@ -45,6 +45,13 @@ spec:
           commonUpdateSettings:
             updateStrategy: "newest-build"
 
+    - namePattern: "j26-tags"
+      images:
+        - alias: "app"
+          imageName: "ghcr.io/scouterna/j26-tags"
+          commonUpdateSettings:
+            updateStrategy: "newest-build"
+
     - namePattern: "j26-cms"
       images:
         - alias: "app"
