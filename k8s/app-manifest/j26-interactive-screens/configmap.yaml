@@ -5,3 +5,8 @@ metadata:
 data:
   OIDC_CONFIG_URL: "https://app.dev.j26.se/auth/.well-known/openid-configuration"
   AUTH_COOKIE_NAME: "j26-auth_access-token"
+  # Tag mappings are mirrored from the j26-tags registry (the machine API, read
+  # with TAGS_API_KEY from Key Vault). Without the key the app starts but never
+  # syncs, so map surveys have no tags to resolve.
+  TAGS_API_URL: "https://app.dev.j26.se/_services/tags/api/tags"
+  TAGS_SYNC_INTERVAL_SECONDS: "300"

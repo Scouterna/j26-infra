@@ -24,6 +24,9 @@ spec:
           env:
             - name: DATABASE_URL
               value: "postgresql://$(AZURE_POSTGRESQL_USER):$(AZURE_POSTGRESQL_PASSWORD)@$(AZURE_POSTGRESQL_HOST):$(AZURE_POSTGRESQL_PORT)/$(AZURE_POSTGRESQL_DATABASE)?sslmode=require"
+          # No CSI mount here: migrations need only the database, which dev takes
+          # from the Service Connector secret above. Prod adds the mount, because
+          # there DATABASE_URL comes from Key Vault (see the prod overlay).
       containers:
         - name: j26-interactive-screens-app
           image: ghcr.io/scouterna/j26-interactive-screens-v2:latest
@@ -34,6 +37,21 @@ spec:
                 name: j26-interactive-screens-config
             - secretRef:
                 name: sc-postgresqlfbac0-secret
+            # Supplies TAGS_API_KEY (and, in prod, DATABASE_URL).
+            - secretRef:
+                name: j26-interactive-screens-secrets
           env:
             - name: DATABASE_URL
               value: "postgresql://$(AZURE_POSTGRESQL_USER):$(AZURE_POSTGRESQL_PASSWORD)@$(AZURE_POSTGRESQL_HOST):$(AZURE_POSTGRESQL_PORT)/$(AZURE_POSTGRESQL_DATABASE)?sslmode=require"
+          # The CSI mount is what makes the Key Vault secret sync.
+          volumeMounts:
+            - name: secrets-store
+              mountPath: /mnt/secrets-store
+              readOnly: true
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: j26-interactive-screens-kv-csi

@@ -3,8 +3,9 @@
 #   - drop the sc-postgresqlfbac0-secret secretRef from envFrom (that Service
 #     Connector secret does not exist in the prod namespace)
 #   - source DATABASE_URL from the CSI secret instead of composing it from parts
-#   - mount the CSI secrets store (the mount is what triggers the secret to sync)
-# Finally, add the CSI volume to the pod.
+# The app container's CSI mount and the pod volume come from the base (they carry
+# TAGS_API_KEY in both environments); only the migrate initContainer needs a mount
+# added here, since in prod its DATABASE_URL also comes from Key Vault.
 - op: replace
   path: /spec/template/spec/initContainers/0/envFrom
   value:
@@ -24,11 +25,14 @@
     - name: secrets-store
       mountPath: /mnt/secrets-store
       readOnly: true
+# Keep the CSI secretRef: in prod it carries both TAGS_API_KEY and DATABASE_URL.
 - op: replace
   path: /spec/template/spec/containers/0/envFrom
   value:
     - configMapRef:
         name: j26-interactive-screens-config
+    - secretRef:
+        name: j26-interactive-screens-secrets
 - op: replace
   path: /spec/template/spec/containers/0/env
   value:
@@ -37,18 +41,3 @@
         secretKeyRef:
           name: j26-interactive-screens-secrets
           key: DATABASE_URL
-- op: add
-  path: /spec/template/spec/containers/0/volumeMounts
-  value:
-    - name: secrets-store
-      mountPath: /mnt/secrets-store
-      readOnly: true
-- op: add
-  path: /spec/template/spec/volumes
-  value:
-    - name: secrets-store
-      csi:
-        driver: secrets-store.csi.k8s.io
-        readOnly: true
-        volumeAttributes:
-          secretProviderClass: j26-interactive-screens-kv-csi

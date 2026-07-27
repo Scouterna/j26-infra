@@ -11,8 +11,6 @@ namespace: j26-prod
 resources:
   - ../../app-manifest/j26-interactive-screens
   - ingressroute.yaml
-  # New in prod: the base has no SecretProviderClass (dev used a Service Connector).
-  - secret-provider-class.yaml
 
 # Pinned production image tag — bumped by an explicit commit, never by the
 # image updater (see prod-apps/j26-interactive-screens.yaml).
@@ -34,11 +32,17 @@ patches:
     target:
       kind: Deployment
       name: j26-interactive-screens
+  # Add DATABASE_URL to the CSI secret and repoint it at the prod KV objects.
+  - path: secret-provider-class-patch.yaml
+    target:
+      kind: SecretProviderClass
+      name: j26-interactive-screens-kv-csi
 
-# Override only the prod-specific ConfigMap values; AUTH_COOKIE_NAME is inherited
-# from the base ConfigMap unchanged.
+# Override only the prod-specific ConfigMap values; AUTH_COOKIE_NAME and
+# TAGS_SYNC_INTERVAL_SECONDS are inherited from the base ConfigMap unchanged.
 configMapGenerator:
   - name: j26-interactive-screens-config
     behavior: merge
     literals:
       - OIDC_CONFIG_URL=https://app.jamboree.se/auth/.well-known/openid-configuration
+      - TAGS_API_URL=https://app.jamboree.se/_services/tags/api/tags
