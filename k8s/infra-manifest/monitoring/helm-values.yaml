@@ -86,11 +86,11 @@ prometheus:
                   operator: In
                   values:
                     - agentpool
-    retention: 90d
-    # Size cap must stay below the PVC's usable disk (~67GB of the 64Gi request)
-    # with headroom for WAL/head/compaction. Raised from 50GB (which was pruning
-    # oldest data before 90d) so camp+evaluation data is retained by time, not size.
-    retentionSize: 60GB
+    # Retention fully disabled (0 = never prune, by time or size): camp data must
+    # survive until it has been exported. Growth is ~0.8GB/day against ~16GB free,
+    # so the PVC must be watched rather than relying on automatic pruning.
+    retention: 0d
+    retentionSize: "0"
     storageSpec:
       volumeClaimTemplate:
         spec:
