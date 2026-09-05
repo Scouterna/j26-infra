@@ -86,10 +86,12 @@ prometheus:
                   operator: In
                   values:
                     - agentpool
-    # Retention fully disabled (0 = never prune, by time or size): camp data must
-    # survive until it has been exported. Growth is ~0.8GB/day against ~16GB free,
-    # so the PVC must be watched rather than relying on automatic pruning.
-    retention: 0d
+    # Effectively infinite. Must be an explicit positive duration: Prometheus
+    # treats retention.time=0 as "unset" and silently falls back to its 15d
+    # DEFAULT, which deleted the camp data. Never set this to 0.
+    retention: 10y
+    # Size-based pruning off; 0 is a valid disable here because retention.time
+    # above is positive.
     retentionSize: "0"
     storageSpec:
       volumeClaimTemplate:
